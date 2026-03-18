@@ -62,6 +62,11 @@ export interface EvidencePhoto {
   license_plate?: string | null;
   officer_description?: string | null;
   department_markings?: string | null;
+  scene_analysis?: any | null;
+  person_count?: number | null;
+  officer_count?: number | null;
+  vehicle_count?: number | null;
+  confidence_score?: number | null;
   captured_at: string;
 }
 
@@ -217,7 +222,17 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
   const analyzeEvidence = useCallback(async (incidentId: string, image_base64: string, source = "camera"): Promise<EvidencePhoto> => {
     const result = await apiFetch<{
       photo_id: string;
-      analysis: string;
+      evidence_summary?: string;
+      scene_analysis?: any;
+      counts?: {
+        persons?: number;
+        law_enforcement?: number;
+        civilians?: number;
+        vehicles?: number;
+      };
+      confidence?: {
+        overall?: number;
+      };
       extracted: {
         vehicle_unit?: string | null;
         license_plate?: string | null;
@@ -232,11 +247,16 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
       id: result.photo_id,
       incident_id: incidentId,
       source,
-      ai_analysis: result.analysis,
+      ai_analysis: result.evidence_summary || null,
       vehicle_unit: result.extracted.vehicle_unit,
       license_plate: result.extracted.license_plate,
       officer_description: result.extracted.officer_description,
       department_markings: result.extracted.department_markings,
+      scene_analysis: result.scene_analysis || null,
+      person_count: result.counts?.persons ?? null,
+      officer_count: result.counts?.law_enforcement ?? null,
+      vehicle_count: result.counts?.vehicles ?? null,
+      confidence_score: result.confidence?.overall ?? null,
       captured_at: new Date().toISOString(),
     };
   }, []);

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, jsonb, integer, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -13,6 +13,11 @@ export const evidencePhotosTable = pgTable("evidence_photos", {
   officer_description: text("officer_description"),
   department_markings: text("department_markings"),
   additional_findings: text("additional_findings"),
+  scene_analysis: jsonb("scene_analysis"),
+  person_count: integer("person_count"),
+  officer_count: integer("officer_count"),
+  vehicle_count: integer("vehicle_count"),
+  confidence_score: real("confidence_score"),
   captured_at: timestamp("captured_at").defaultNow().notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
