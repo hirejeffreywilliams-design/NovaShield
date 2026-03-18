@@ -2,7 +2,7 @@
 
 ## Overview
 
-Full-stack civil rights accountability mobile app for recording and documenting police encounters. Features GPS geolocation, AI-powered squad car/badge/officer identification via photo evidence, constitutional rights tagging on events, evidence-grade report generation, and a precise incident timeline.
+Full-stack civil rights accountability mobile app for recording and documenting police encounters. Features GPS geolocation, AI-powered squad car/badge/officer identification via photo evidence, constitutional rights tagging on events, evidence-grade report generation, a precise incident timeline, a Know Your Rights AI assistant with state-specific law citations, GPS-based nearby police department finder, POST board officer certification verification, national misconduct databases, and AI FOIA request generation.
 
 ## Key Features
 
@@ -10,7 +10,12 @@ Full-stack civil rights accountability mobile app for recording and documenting 
 - **AI Photo Evidence** — photograph squad cars/badges, GPT vision extracts unit #, license plate, department, officer description
 - **Constitutional Rights Tagging** — every event maps to an Amendment (1st, 4th, 5th, 8th, 14th)
 - **Evidence Timeline** — chronological events with wall-clock timestamps
-- **Officer lookup** by badge number, officer profile management
+- **Officer lookup** by badge number, pattern flagging when same officer appears in multiple incidents
+- **Nearby Departments** — GPS-based police department finder using OpenStreetMap Overpass API (free, no API key)
+- **POST Board Verification** — official government officer certification lookup links for all 50 states + DC
+- **Accountability Resources** — state-specific misconduct databases, national databases (IADLEST NDI, ProPublica, Mapping Police Violence)
+- **AI FOIA Request Generator** — generates professional public records request letters citing correct state open-records laws
+- **Know Your Rights tab** — 8 scenario cards, state picker (51 jurisdictions), AI Q&A citing only Cornell Law / ACLU / Justia / official state legislature URLs
 - **AI Report Generation** — evidence-grade reports with findings and recommendations
 - **Incident management** — full CRUD with GPS coordinates, duration timer, status tracking
 
