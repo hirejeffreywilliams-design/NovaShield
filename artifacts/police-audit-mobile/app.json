@@ -14,9 +14,24 @@
       "backgroundColor": "#0a1020"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "CivilShield needs camera access to record video evidence of police encounters for your civil rights documentation.",
+        "NSMicrophoneUsageDescription": "CivilShield needs microphone access to capture audio in video evidence recordings.",
+        "NSPhotoLibraryUsageDescription": "CivilShield needs photo library access to save video evidence to your device.",
+        "NSPhotoLibraryAddUsageDescription": "CivilShield needs permission to save video evidence to your photo library."
+      }
     },
-    "android": {},
+    "android": {
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ]
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
@@ -28,7 +43,23 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "CivilShield needs camera access to record video evidence of police encounters.",
+          "microphonePermission": "CivilShield needs microphone access to capture audio in video evidence recordings.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "CivilShield needs photo library access to save your video evidence.",
+          "savePhotosPermission": "CivilShield needs permission to save video evidence to your photo library.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

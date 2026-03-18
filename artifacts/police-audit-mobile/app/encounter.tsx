@@ -509,6 +509,12 @@ export default function EncounterScreen() {
     setShowOfficerCard(true);
   }, []);
 
+  const handleStartRecording = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    Vibration.vibrate(200);
+    router.push({ pathname: "/record", params: { autoStart: "true" } } as any);
+  }, []);
+
   return (
     <View style={[s.container, { paddingTop: topPad }]}>
       {showOfficerCard && <ShowOfficerCard onClose={() => setShowOfficerCard(false)} />}
@@ -526,6 +532,13 @@ export default function EncounterScreen() {
           <Text style={s.showOfficerBtnText}>Show Officer</Text>
         </Pressable>
       </View>
+
+      <Pressable style={s.recBanner} onPress={handleStartRecording}>
+        <View style={s.recBannerDot} />
+        <Feather name="video" size={15} color="#fff" />
+        <Text style={s.recBannerText}>START RECORDING VIDEO + AUDIO NOW</Text>
+        <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.7)" />
+      </Pressable>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.scenarioScroll} contentContainerStyle={s.scenarioScrollContent}>
         {SCENARIOS.map((sc) => (
@@ -618,6 +631,31 @@ const s = StyleSheet.create({
     borderRadius: 10,
   },
   showOfficerBtnText: { fontSize: 12, color: "#fff", fontFamily: "Inter_600SemiBold", fontWeight: "600" as const },
+  recBanner: {
+    flexDirection: "row" as const,
+    alignItems: "center",
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    backgroundColor: ACCENT,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  recBannerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#fff",
+  },
+  recBannerText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "700" as const,
+    color: "#fff",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.5,
+  },
   scenarioScroll: { maxHeight: 44, flexGrow: 0 },
   scenarioScrollContent: { paddingHorizontal: 16, gap: 8, alignItems: "center" },
   scenarioChip: {

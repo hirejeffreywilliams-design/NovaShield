@@ -738,6 +738,16 @@ export default function EvidenceScreen() {
         </Pressable>
       </View>
 
+      <Pressable
+        style={({ pressed }) => [styles.recordVideoBtn, { opacity: pressed ? 0.85 : 1 }]}
+        onPress={() => router.push({ pathname: "/record", params: { incidentId: id, autoStart: "true" } } as any)}
+        disabled={analyzing}
+      >
+        <View style={styles.recordVideoDot} />
+        <Feather name="video" size={17} color="#fff" />
+        <Text style={styles.recordVideoBtnText}>Record Video Evidence</Text>
+      </Pressable>
+
       {analyzing && (
         <View style={styles.analyzingBanner}>
           <ActivityIndicator color={C.accent} size="small" />
@@ -806,6 +816,29 @@ const styles = StyleSheet.create({
   captureBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, backgroundColor: C.accent, borderRadius: 12, paddingVertical: 12 },
   captureBtnSecondary: { backgroundColor: "transparent", borderWidth: 1, borderColor: C.accent },
   captureBtnText: { color: "#fff", fontSize: 14, fontWeight: "600" as const, fontFamily: "Inter_600SemiBold" },
+  recordVideoBtn: {
+    flexDirection: "row" as const,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 10,
+    backgroundColor: "#E53935",
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  recordVideoDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#fff",
+  },
+  recordVideoBtnText: {
+    fontSize: 14,
+    fontWeight: "700" as const,
+    color: "#fff",
+    fontFamily: "Inter_700Bold",
+  },
   analyzingBanner: { flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 20, marginBottom: 10, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: C.accent + "18", borderRadius: 12, borderWidth: 1, borderColor: C.accent + "33" },
   analyzingText: { fontSize: 13, color: C.text, fontFamily: "Inter_500Medium", fontWeight: "500" as const },
   analyzingSubText: { fontSize: 11, color: C.textMuted, fontFamily: "Inter_400Regular", marginTop: 2 },

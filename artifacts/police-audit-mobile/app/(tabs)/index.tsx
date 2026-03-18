@@ -141,6 +141,11 @@ export default function IncidentsScreen() {
     router.push(route as any);
   }, []);
 
+  const handleRecord = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    router.push({ pathname: "/record", params: { autoStart: "true" } } as any);
+  }, []);
+
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   return (
@@ -176,6 +181,23 @@ export default function IncidentsScreen() {
           <View style={styles.sosActiveDot} />
         )}
         <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.6)" />
+      </Pressable>
+
+      <Pressable
+        style={({ pressed }) => [styles.recordButton, { opacity: pressed ? 0.85 : 1 }]}
+        onPress={handleRecord}
+      >
+        <View style={styles.recordIconWrap}>
+          <Feather name="video" size={20} color="#fff" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.recordLabel}>Record Video Evidence</Text>
+          <Text style={styles.recordSub}>Tap to start video + audio capture instantly</Text>
+        </View>
+        <View style={styles.recIndicator}>
+          <View style={styles.recDot} />
+          <Text style={styles.recText}>REC</Text>
+        </View>
       </Pressable>
 
       <View style={styles.powerGrid}>
@@ -326,6 +348,65 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#fff",
     marginRight: 4,
+  },
+
+  recordButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginHorizontal: 14,
+    marginBottom: 10,
+    backgroundColor: "#0f1f0f",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    borderWidth: 1.5,
+    borderColor: "#22c55e40",
+  },
+  recordIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E53935",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  recordLabel: {
+    fontSize: 14,
+    fontWeight: "700" as const,
+    color: "#fff",
+    fontFamily: "Inter_700Bold",
+  },
+  recordSub: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.55)",
+    fontFamily: "Inter_400Regular",
+    marginTop: 2,
+  },
+  recIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#E5393520",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "#E5393550",
+  },
+  recDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#E53935",
+  },
+  recText: {
+    fontSize: 11,
+    fontWeight: "700" as const,
+    color: "#E53935",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.5,
   },
 
   powerGrid: {
