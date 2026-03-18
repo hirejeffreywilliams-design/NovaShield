@@ -5,7 +5,8 @@
  * Police Audit API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { Officer } from "./officer";
 
-export interface HealthStatus {
-  status: string;
-}
+export type ListOfficers200 = {
+  officers: Officer[];
+};

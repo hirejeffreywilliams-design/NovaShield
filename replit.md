@@ -1,8 +1,8 @@
-# Workspace
+# Police Audit App
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Full-stack mobile app for recording and documenting police-public encounters. Includes a React Native (Expo) mobile app and an Express API backend backed by PostgreSQL.
 
 ## Stack
 

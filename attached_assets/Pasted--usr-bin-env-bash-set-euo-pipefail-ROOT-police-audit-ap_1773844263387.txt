@@ -1,0 +1,413 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="police-audit-app"
+ZIPFILE="${ROOT}.zip"
+rm -rf "$ROOT" "$ZIPFILE"
+mkdir -p "$ROOT"
+
+# Top-level README
+cat > "$ROOT/README.md" <<'README'
+Police Audit App - Project Scaffold
+===================================
+
+Contents:
+- backend/        Node.js Express API (stubs)
+- mobile/         React Native app stub (UI + recording placeholder)
+- ml/             Python stubs for STT, vision, event-detection
+- infra/          Dockerfiles & docker-compose
+- openapi/        OpenAPI spec (v1)
+- sql/            PostgreSQL schema
+- docs/           Product spec & roadmap
+- create_report.sh Helper to generate PDF report from JSON (placeholder)
+
+This scaffold is for development/prototyping only. Replace placeholders, secure secrets, and run legal review before production.
+README
+
+# docs: compact product spec & roadmap
+mkdir -p "$ROOT/docs"
+cat > "$ROOT/docs/product_spec.md" <<'SPEC'
+Product Summary:
+Mobile + web app to record police-public encounters, create tamper-evident media, run AI analysis (STT, vision), map events to laws/policies, produce evidence-grade reports, and lookup officer public records.
+
+MVP:
+- Secure recording (local hash), upload, basic STT, manual badge lookup, PDF report skeleton.
+- Later: OCR badge scanning, vision event detection, policy engine, officer aggregation, redaction, human review workflow.
+
+Privacy & Legal:
+- In-app local-law warnings, consent flows, E2E encryption, redaction tools, provenance for officer data.
+SPEC
+
+# Backend scaffold
+mkdir -p "$ROOT/backend/src"
+cat > "$ROOT/backend/package.json" <<'PKG'
+{
+  "name": "police-audit-backend",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.10.0",
+    "aws-sdk": "^2.1400.0",
+    "uuid": "^9.0.0"
+  }
+}
+PKG
+
+cat > "$ROOT/backend/src/index.js" <<'JS'
+const express = require('express');
+const multer = require('multer');
+const upload = multer({ dest: '/tmp/uploads' });
+const { v4: uuidv4 } = require('uuid');
+
+const app = express();
+app.use(express.json());
+
+// Health
+app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
+
+// Upload incident media (encrypted client-side recommended)
+app.post('/api/v1/incidents/upload', upload.single('media'), (req, res) => {
+  // TODO: move file to object store, compute/store hash, create incident row
+  const id = uuidv4();
+  res.json({ incident_id: id, message: 'Uploaded (stub)' });
+});
+
+// Check analysis status
+app.get('/api/v1/incidents/:id/status', (req, res) => {
+  res.json({ incident_id: req.params.id, status: 'processing', progress: 42 });
+});
+
+// Get report
+app.get('/api/v1/incidents/:id/report', (req, res) => {
+  // TODO: stream or redirect to S3 pre-signed URL
+  res.json({ incident_id: req.params.id, report: { findings: [] } });
+});
+
+// Resolve officer via badge number or OCR result
+app.post('/api/v1/officers/resolve', (req, res) => {
+  const { badge_number } = req.body || {};
+  // TODO: query officer index; return provenance
+  res.json({ badge_number, officer: null, message: 'stub' });
+});
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log('Backend listening on', PORT));
+JS
+
+cat > "$ROOT/backend/Dockerfile" <<'DOCK'
+FROM node:18-alpine
+WORKDIR /app
+COPY package.json ./
+RUN npm install --production
+COPY src ./src
+EXPOSE 4000
+CMD ["node", "src/index.js"]
+DOCK
+
+cat > "$ROOT/backend/.env.example" <<'ENV'
+PORT=4000
+DATABASE_URL=postgres://dev:dev@localhost:5432/police_audit
+S3_BUCKET=your-bucket
+ENV
+
+# Mobile scaffold (React Native stub)
+mkdir -p "$ROOT/mobile"
+cat > "$ROOT/mobile/README.md" <<'MREAD'
+React Native stub.
+- Implement camera recording with timed hashing and offline storage.
+- Add badge scanner overlay using Vision APIs.
+- Example: use Expo or React Native CLI.
+MREAD
+
+cat > "$ROOT/mobile/App.js" <<'APP'
+/**
+ * Placeholder React Native app.
+ * Replace with actual camera/permissions/recording code.
+ */
+import React from 'react';
+import { SafeAreaView, Text, Button, Alert } from 'react-native';
+
+export default function App() {
+  return (
+    <SafeAreaView style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+      <Text>Police Audit App - Mobile Stub</Text>
+      <Button title="Start Recording (stub)" onPress={() => Alert.alert('Start recording - implement camera')} />
+    </SafeAreaView>
+  );
+}
+APP
+
+cat > "$ROOT/mobile/package.json" <<'MPKG'
+{
+  "name": "police-audit-mobile",
+  "version": "0.1.0",
+  "main": "App.js",
+  "scripts": {
+    "start": "expo start"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-native": "0.72.0",
+    "expo": "^48.0.0"
+  }
+}
+MPKG
+
+# ML stubs
+mkdir -p "$ROOT/ml"
+cat > "$ROOT/ml/README.md" <<'MMLREAD'
+ML stubs:
+- stt.py: transcription wrapper (use WhisperX or private STT)
+- vision.py: badge OCR + object detection (YOLOv8/Detectron2)
+- event_pipeline.py: multimodal event-detection scaffolding
+
+Replace stubs with trained models and GPU-enabled deployment.
+MMLREAD
+
+cat > "$ROOT/ml/stt.py" <<'STT'
+"""
+STT stub - call a speech-to-text model or service.
+Replace with on-prem/private model for privacy.
+"""
+def transcribe(audio_path):
+    # TODO: call WhisperX or other STT
+    return {"transcript": "transcribed text (stub)", "segments": []}
+
+if __name__ == "__main__":
+    print(transcribe("audio.mp3"))
+STT
+
+cat > "$ROOT/ml/vision.py" <<'VISION'
+"""
+Vision stub - badge OCR and simple object detection.
+Integrate Tesseract or cloud OCR with contractual privacy protections,
+and YOLOv8/Detectron2 for detection (weapon, handcuffs).
+"""
+def ocr_badge(image_path):
+    return {"badge_text": "12345", "confidence": 0.86}
+
+def detect_objects(frame_path):
+    return [{"label": "weapon", "confidence": 0.74, "bbox": [10,10,100,100]}]
+
+if __name__ == "__main__":
+    print(ocr_badge("badge.jpg"))
+    print(detect_objects("frame.jpg"))
+VISION
+
+cat > "$ROOT/ml/event_pipeline.py" <<'PIPE'
+"""
+Event pipeline stub:
+- Combine STT transcripts, vision detections, timestamps
+- Emit timeline events with confidence and evidence clip refs
+"""
+def analyze(media_path):
+    # TODO: implement multimodal model + rule-based policy mapping
+    return {"events": [{"type": "weapon_drawn", "start": 12.3, "end": 14.1, "confidence": 0.8}]}
+
+if __name__ == "__main__":
+    print(analyze("video.mp4"))
+PIPE
+
+cat > "$ROOT/ml/requirements.txt" <<'REQ'
+# Add ML deps here, e.g.:
+# torch
+# torchvision
+# openai-whisper (if used)
+REQ
+
+# SQL schema
+mkdir -p "$ROOT/sql"
+cat > "$ROOT/sql/schema.sql" <<'SQL'
+-- PostgreSQL schema (initial)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT,
+  email TEXT UNIQUE,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE incidents (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id),
+  device_hash TEXT,
+  media_url TEXT,
+  location_geo JSONB,
+  created_at TIMESTAMP DEFAULT now(),
+  analysis_status TEXT,
+  report_id UUID
+);
+
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  incident_id UUID REFERENCES incidents(id),
+  start_ts FLOAT,
+  end_ts FLOAT,
+  type TEXT,
+  confidence FLOAT,
+  transcript_segment TEXT
+);
+
+CREATE TABLE officers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT,
+  badge_no TEXT,
+  agency TEXT,
+  roster_url TEXT,
+  public_records JSONB,
+  flags_summary JSONB
+);
+
+CREATE TABLE audit_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  object_id UUID,
+  action TEXT,
+  actor_id UUID,
+  timestamp TIMESTAMP DEFAULT now(),
+  signature TEXT
+);
+SQL
+
+# OpenAPI spec (minimal)
+mkdir -p "$ROOT/openapi"
+cat > "$ROOT/openapi/openapi.yaml" <<'OAPI'
+openapi: 3.0.3
+info:
+  title: Police Audit API
+  version: "1.0.0"
+paths:
+  /api/v1/incidents/upload:
+    post:
+      summary: Upload incident media
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                media:
+                  type: string
+                  format: binary
+                metadata:
+                  type: string
+      responses:
+        '200':
+          description: upload accepted
+  /api/v1/incidents/{id}/status:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: status
+  /api/v1/incidents/{id}/report:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: report
+  /api/v1/officers/resolve:
+    post:
+      summary: Resolve officer by badge or OCR text
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                badge_number:
+                  type: string
+                badge_text:
+                  type: string
+      responses:
+        '200':
+          description: officer resolved (stub)
+OAPI
+
+# Infra: docker-compose and readme
+mkdir -p "$ROOT/infra"
+cat > "$ROOT/infra/docker-compose.yml" <<'DC'
+version: "3.8"
+services:
+  backend:
+    build: ../backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - ../backend:/app
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5432:5432"
+DC
+
+cat > "$ROOT/infra/README.md" <<'IDOC'
+Infra:
+- docker-compose for local dev (backend + postgres).
+- Add object storage (minio) and GPU infra for ML as needed.
+- Replace volumes with proper Dockerfile build for CI.
+IDOC
+
+# Report generator (placeholder)
+cat > "$ROOT/create_report.sh" <<'CREP'
+#!/usr/bin/env bash
+set -euo pipefail
+INPUT_JSON="$1"
+OUTPUT_PDF="${2:-report.pdf}"
+echo "Generating PDF (stub) from $INPUT_JSON -> $OUTPUT_PDF"
+# Example: transform JSON to HTML and use wkhtmltopdf (not implemented)
+cat "$INPUT_JSON" > /tmp/report.json
+echo "Report generation placeholder. Implement JSON->HTML->PDF pipeline."
+CREP
+chmod +x "$ROOT/create_report.sh"
+
+# LICENSE and CONTRIBUTING
+cat > "$ROOT/LICENSE" <<'LIC'
+MIT License
+Copyright (c) 2026
+LIC
+
+cat > "$ROOT/CONTRIBUTING.md" <<'CONTR'
+Contributing Guidelines:
+- Open PRs against main branch.
+- Run linters and tests before merging.
+CONTR
+
+# Minimal gitignore
+cat > "$ROOT/.gitignore" <<'GIT'
+node_modules
+.env
+*.zip
+.DS_Store
+GIT
+
+# Zip the scaffold
+cd "$ROOT/.."
+zip -r "$ZIPFILE" "$(basename "$ROOT")" > /dev/null
+
+echo "Generated scaffold at: $ROOT/"
+echo "Created ZIP: $ZIPFILE"
+echo "Next steps:"
+echo "  - Inspect $ROOT/README.md and docs/"
+echo "  - Implement model training and secure backend storage"
+echo "  - Replace stubs and add security/consent/legal review"

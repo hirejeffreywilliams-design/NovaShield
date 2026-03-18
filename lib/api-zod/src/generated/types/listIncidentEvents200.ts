@@ -5,7 +5,8 @@
  * Police Audit API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { IncidentEvent } from "./incidentEvent";
 
-export interface HealthStatus {
-  status: string;
-}
+export type ListIncidentEvents200 = {
+  events: IncidentEvent[];
+};
