@@ -32,7 +32,7 @@ const C = Colors.light;
 const POWER_TOOLS = [
   {
     id: "encounter",
-    title: "Encounter Mode",
+    title: "Shield Protocol",
     sub: "Scripts · Demands · Rights",
     icon: "shield",
     color: "#E53935",
@@ -42,7 +42,7 @@ const POWER_TOOLS = [
   },
   {
     id: "corruption",
-    title: "Report Corruption",
+    title: "Expose & Report",
     sub: "Document · Report · Expose",
     icon: "target",
     color: "#f59e0b",
@@ -52,7 +52,7 @@ const POWER_TOOLS = [
   },
   {
     id: "immigration",
-    title: "Immigration Rights",
+    title: "Sanctuary Rights",
     sub: "ICE · CBP · Detention",
     icon: "globe",
     color: "#0891b2",
@@ -62,7 +62,7 @@ const POWER_TOOLS = [
   },
   {
     id: "complaints",
-    title: "File a Complaint",
+    title: "Guardian Complaint",
     sub: "All 50 states + Federal",
     icon: "folder",
     color: "#6366f1",
@@ -137,8 +137,8 @@ export default function IncidentsScreen() {
     <View style={[styles.container, { paddingTop: topPad }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>CitizenWatch</Text>
-          <Text style={styles.headerSub}>Hold power accountable · {incidents.length} incident{incidents.length !== 1 ? "s" : ""} recorded</Text>
+          <Text style={styles.headerTitle}>CivilShield</Text>
+          <Text style={styles.headerSub}>The Shield is yours · {incidents.length} Shield Report{incidents.length !== 1 ? "s" : ""} filed</Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.newBtn, { opacity: pressed ? 0.8 : 1 }]}
@@ -156,10 +156,10 @@ export default function IncidentsScreen() {
         <Feather name="zap" size={20} color="#fff" />
         <View style={{ flex: 1 }}>
           <Text style={styles.sosLabel}>
-            {activeEvent ? "SOS ACTIVE — Tap to manage" : "SOS Emergency Button"}
+            {activeEvent ? "SHIELD ALERT ACTIVE — Tap to manage" : "Shield Alert — Emergency Button"}
           </Text>
           <Text style={styles.sosSub}>
-            {activeEvent ? "Alert sent · Timer running · Tap for status options" : "Instant location alert to trusted contacts · Know your rights"}
+            {activeEvent ? "Alert sent · Timer running · Tap for status options" : "Instant location alert to your Guardian Network · Know your rights"}
           </Text>
         </View>
         {activeEvent && (
@@ -188,7 +188,7 @@ export default function IncidentsScreen() {
       </View>
 
       <View style={styles.incidentsHeader}>
-        <Text style={styles.incidentsTitle}>Recorded Incidents</Text>
+        <Text style={styles.incidentsTitle}>Shield Reports</Text>
         {incidents.length > 0 && (
           <Pressable onPress={handleNewIncident} style={styles.incidentAddBtn}>
             <Feather name="plus" size={14} color={C.accent} />
@@ -202,16 +202,16 @@ export default function IncidentsScreen() {
           <View style={styles.emptyIconWrap}>
             <Feather name="shield" size={36} color={C.accent} />
           </View>
-          <Text style={styles.emptyTitle}>No Incidents Recorded</Text>
+          <Text style={styles.emptyTitle}>Your Shield Log is Clear</Text>
           <Text style={styles.emptyText}>
-            Use the tools above to document encounters, report corruption, or know your rights. Tap + to record your first incident.
+            Use the tools above to activate Shield Protocol, expose corruption, or access your Guardian Code. Tap + to file your first Shield Report.
           </Text>
           <Pressable
             style={({ pressed }) => [styles.emptyBtn, { opacity: pressed ? 0.8 : 1 }]}
             onPress={handleNewIncident}
           >
             <Feather name="edit-3" size={16} color="#fff" />
-            <Text style={styles.emptyBtnText}>Record First Incident</Text>
+            <Text style={styles.emptyBtnText}>Raise Your Shield</Text>
           </Pressable>
         </View>
       ) : (

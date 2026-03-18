@@ -15,19 +15,19 @@ function NativeTabLayout() {
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "list.bullet", selected: "list.bullet" }} />
-        <Label>Incidents</Label>
+        <Label>Shield HQ</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="officers">
         <Icon sf={{ default: "person.2", selected: "person.2.fill" }} />
-        <Label>Officers</Label>
+        <Label>Badges</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="rights">
         <Icon sf={{ default: "book.open", selected: "book.open.fill" }} />
-        <Label>Rights</Label>
+        <Label>The Code</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="reports">
         <Icon sf={{ default: "doc.text", selected: "doc.text.fill" }} />
-        <Label>Reports</Label>
+        <Label>Filed</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -64,7 +64,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Incidents",
+          title: "Shield HQ",
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="list.bullet" tintColor={color} size={24} />
@@ -76,7 +76,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="officers"
         options={{
-          title: "Officers",
+          title: "Badges",
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="person.2" tintColor={color} size={24} />
@@ -88,7 +88,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="rights"
         options={{
-          title: "Rights",
+          title: "The Code",
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="book.open" tintColor={color} size={24} />
@@ -100,7 +100,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="reports"
         options={{
-          title: "Reports",
+          title: "Filed",
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="doc.text" tintColor={color} size={24} />

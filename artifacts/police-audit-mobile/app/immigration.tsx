@@ -489,7 +489,7 @@ export default function ImmigrationScreen() {
           <Feather name="arrow-left" size={24} color={TEXT} />
         </Pressable>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={s.headerTitle}>Immigration Rights</Text>
+          <Text style={s.headerTitle}>Sanctuary Rights</Text>
           <Text style={s.headerSub}>ICE · CBP · Detention · Know Your Rights</Text>
         </View>
       </View>

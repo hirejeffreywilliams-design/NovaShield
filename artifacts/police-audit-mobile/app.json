@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "Police Audit",
+    "name": "CivilShield",
     "slug": "police-audit-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "police-audit-mobile",
+    "scheme": "civilshield",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0a1020"
     },
     "ios": {
       "supportsTablet": false

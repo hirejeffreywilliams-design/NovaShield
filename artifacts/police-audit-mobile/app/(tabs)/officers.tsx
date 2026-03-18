@@ -625,7 +625,7 @@ export default function OfficersScreen() {
     <View style={[styles.container, { paddingTop: topPad }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Officers & Depts</Text>
+          <Text style={styles.headerTitle}>Badge Registry</Text>
           <Text style={styles.headerSub}>{officers.length} records · {departments.length > 0 ? `${departments.length} nearby depts` : "tap Departments"}</Text>
         </View>
         <View style={styles.headerActions}>
@@ -659,14 +659,14 @@ export default function OfficersScreen() {
             <Animated.View entering={FadeIn.duration(300)} style={styles.patternAlert}>
               <Feather name="alert-triangle" size={14} color="#ef4444" />
               <Text style={styles.patternAlertText}>
-                {patternOfficers.length} officer{patternOfficers.length > 1 ? "s" : ""} flagged — multiple incidents recorded
+                {patternOfficers.length} officer{patternOfficers.length > 1 ? "s" : ""} flagged — multiple Shield Reports filed
               </Text>
             </Animated.View>
           )}
           {officers.length === 0 ? (
             <View style={styles.emptyState}>
               <Feather name="users" size={56} color={C.border} />
-              <Text style={styles.emptyTitle}>No Officers Recorded</Text>
+              <Text style={styles.emptyTitle}>No Badges in Registry</Text>
               <Text style={styles.emptyText}>Add officer records manually or use badge lookup</Text>
               <View style={styles.emptyActions}>
                 <Pressable style={styles.emptyBtn} onPress={() => setShowLookup(true)}>

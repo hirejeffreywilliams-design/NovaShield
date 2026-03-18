@@ -477,7 +477,7 @@ export default function CorruptionScreen() {
           <Feather name="arrow-left" size={24} color={TEXT} />
         </Pressable>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={s.headerTitle}>Police Accountability</Text>
+          <Text style={s.headerTitle}>Expose & Report</Text>
           <Text style={s.headerSub}>Document · Report · Expose corruption with your rights</Text>
         </View>
       </View>

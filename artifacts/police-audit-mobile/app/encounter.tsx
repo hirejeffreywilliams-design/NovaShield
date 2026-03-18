@@ -518,7 +518,7 @@ export default function EncounterScreen() {
           <Feather name="arrow-left" size={22} color={TEXT} />
         </Pressable>
         <View style={s.headerCenter}>
-          <Text style={s.headerTitle}>Encounter Mode</Text>
+          <Text style={s.headerTitle}>Shield Protocol</Text>
           <Text style={s.headerSub}>Your rights · Your script</Text>
         </View>
         <Pressable style={s.showOfficerBtn} onPress={handleShowOfficerCard}>

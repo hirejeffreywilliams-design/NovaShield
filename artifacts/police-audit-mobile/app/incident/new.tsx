@@ -160,7 +160,7 @@ export default function NewIncidentScreen() {
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Feather name="x" size={24} color={C.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>New Incident</Text>
+        <Text style={styles.headerTitle}>New Shield Report</Text>
         <Pressable
           style={({ pressed }) => [styles.saveBtn, { opacity: isSubmitting || pressed ? 0.7 : 1 }]}
           onPress={handleSubmit}

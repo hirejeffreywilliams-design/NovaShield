@@ -69,7 +69,7 @@ function ContactCard({
           {contact.notify_on_sos && (
             <View style={styles.sosBadge}>
               <Feather name="zap" size={10} color="#ef4444" />
-              <Text style={styles.sosBadgeText}>SOS</Text>
+              <Text style={styles.sosBadgeText}>ALERT</Text>
             </View>
           )}
           <Pressable
@@ -164,7 +164,7 @@ export default function ContactsScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       Alert.alert(
         "Remove Contact",
-        `Remove ${contact.name} from your trusted contacts? They will no longer be alerted during an SOS.`,
+        `Remove ${contact.name} from your Guardian Network? They will no longer be alerted during a Shield Alert.`,
         [
           { text: "Cancel", style: "cancel" },
           {
@@ -188,8 +188,8 @@ export default function ContactsScreen() {
           <Feather name="arrow-left" size={22} color={C.text} />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Trusted Contacts</Text>
-          <Text style={styles.headerSub}>Alerted automatically during SOS</Text>
+          <Text style={styles.headerTitle}>Guardian Network</Text>
+          <Text style={styles.headerSub}>Alerted automatically during Shield Alert</Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.addBtn, { opacity: pressed ? 0.8 : 1 }]}
@@ -204,9 +204,9 @@ export default function ContactsScreen() {
           <View style={styles.emptyIcon}>
             <Feather name="users" size={36} color="#ef4444" />
           </View>
-          <Text style={styles.emptyTitle}>No Trusted Contacts</Text>
+          <Text style={styles.emptyTitle}>Guardian Network is Empty</Text>
           <Text style={styles.emptyText}>
-            Add family members, attorneys, or close friends. When you activate SOS, they'll receive an instant SMS with your location and situation.
+            Add family members, attorneys, or close friends. When you raise a Shield Alert, they'll receive an instant SMS with your location and situation.
           </Text>
           <Pressable
             style={({ pressed }) => [styles.emptyBtn, { opacity: pressed ? 0.8 : 1 }]}
@@ -224,7 +224,7 @@ export default function ContactsScreen() {
               <Text style={{ color: "#ef4444", fontFamily: "Inter_700Bold" }}>
                 {contacts.filter((c) => c.notify_on_sos).length}
               </Text>
-              {" "}of {contacts.length} contact{contacts.length !== 1 ? "s" : ""} will be alerted via SMS when you activate SOS
+              {" "}of {contacts.length} Guardian{contacts.length !== 1 ? "s" : ""} will be alerted via SMS during a Shield Alert
             </Text>
           </View>
           <FlatList
@@ -334,7 +334,7 @@ export default function ContactsScreen() {
 
             <View style={styles.toggleRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.toggleLabel}>Alert on SOS</Text>
+                <Text style={styles.toggleLabel}>Alert on Shield Alert</Text>
                 <Text style={styles.toggleSub}>Send SMS when you trigger emergency alert</Text>
               </View>
               <Switch

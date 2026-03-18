@@ -273,7 +273,7 @@ export default function SOSScreen() {
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
             <Feather name="x" size={22} color={C.textMuted} />
           </Pressable>
-          <Text style={styles.headerTitle}>SOS Emergency</Text>
+          <Text style={styles.headerTitle}>Shield Alert</Text>
           <View style={{ width: 44 }} />
         </View>
 
@@ -295,7 +295,7 @@ export default function SOSScreen() {
             <Animated.View entering={FadeInDown.delay(80).duration(300)} style={styles.noContactsWarn}>
               <Feather name="user-x" size={15} color="#f59e0b" />
               <Text style={styles.noContactsText}>
-                No trusted contacts added yet.{" "}
+                No Guardian Network contacts added yet.{" "}
                 <Text style={{ color: "#f59e0b", fontFamily: "Inter_600SemiBold" }} onPress={() => router.push("/contacts")}>
                   Add contacts
                 </Text>{" "}
@@ -387,7 +387,7 @@ export default function SOSScreen() {
         )}
 
         <Text style={styles.sectionLabel}>SEND STATUS UPDATE</Text>
-        <Text style={styles.sectionSub}>Tapping a button sends an SMS to all trusted contacts with your status and location.</Text>
+        <Text style={styles.sectionSub}>Tapping a button sends an SMS to your entire Guardian Network with your status and location.</Text>
 
         <View style={styles.statusGrid}>
           {STATUS_ACTIONS.map((action, i) => (

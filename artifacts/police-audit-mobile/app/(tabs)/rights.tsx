@@ -142,7 +142,7 @@ export default function RightsScreen() {
           <Feather name="book-open" size={20} color={C.accent} />
         </View>
         <View>
-          <Text style={styles.headerTitle}>Know Your Rights</Text>
+          <Text style={styles.headerTitle}>Guardian Code</Text>
           <Text style={styles.headerSub}>Verified public legal information</Text>
         </View>
       </View>

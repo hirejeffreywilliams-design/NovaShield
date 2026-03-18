@@ -79,17 +79,17 @@ export default function ReportsScreen() {
     <View style={[styles.container, { paddingTop: topPad }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Reports</Text>
-          <Text style={styles.headerSub}>{reports.length} generated</Text>
+          <Text style={styles.headerTitle}>Shield Reports</Text>
+          <Text style={styles.headerSub}>{reports.length} Shield Report{reports.length !== 1 ? "s" : ""} filed</Text>
         </View>
       </View>
 
       {reports.length === 0 ? (
         <View style={styles.emptyState}>
           <Feather name="file-text" size={56} color={C.border} />
-          <Text style={styles.emptyTitle}>No Reports Yet</Text>
+          <Text style={styles.emptyTitle}>No Shield Reports Filed</Text>
           <Text style={styles.emptyText}>
-            Generate a report from any incident to create evidence-grade documentation
+            File a Shield Report from any Shield Report to create evidence-grade documentation for the Guardian Record
           </Text>
         </View>
       ) : (
