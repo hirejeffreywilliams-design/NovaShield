@@ -7,6 +7,7 @@ import analyzeRouter from "./analyze";
 import rightsRouter from "./rights";
 import departmentsRouter from "./departments";
 import integrityRouter from "./integrity";
+import immigrationRouter from "./immigration";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use("/officers", officersRouter);
 router.use("/reports", reportsRouter);
 router.use("/rights", rightsRouter);
 router.use("/departments", departmentsRouter);
+router.use(immigrationRouter);
 
 export default router;

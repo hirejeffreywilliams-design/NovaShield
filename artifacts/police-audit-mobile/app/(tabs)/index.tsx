@@ -46,6 +46,11 @@ export default function IncidentsScreen() {
     router.push("/encounter");
   }, []);
 
+  const handleImmigration = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push("/immigration");
+  }, []);
+
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   return (
@@ -73,6 +78,20 @@ export default function IncidentsScreen() {
         <View style={styles.encounterText}>
           <Text style={styles.encounterTitle}>Encounter Mode</Text>
           <Text style={styles.encounterSub}>Scripts · Demands · Rights — flip the power dynamic</Text>
+        </View>
+        <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
+      </Pressable>
+
+      <Pressable
+        style={({ pressed }) => [styles.immigrationBanner, { opacity: pressed ? 0.9 : 1 }]}
+        onPress={handleImmigration}
+      >
+        <View style={styles.immigrationIconWrap}>
+          <Feather name="globe" size={20} color="#fff" />
+        </View>
+        <View style={styles.encounterText}>
+          <Text style={styles.immigrationTitle}>Immigration Rights</Text>
+          <Text style={styles.immigrationSub}>ICE · CBP · Detention — verified legal rights</Text>
         </View>
         <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
       </Pressable>
@@ -181,6 +200,41 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   encounterSub: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.8)",
+    fontFamily: "Inter_400Regular",
+  },
+  immigrationBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderRadius: 16,
+    backgroundColor: "#0e7490",
+    shadowColor: "#0891b2",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  immigrationIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 11,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  immigrationTitle: {
+    fontSize: 15,
+    fontWeight: "700" as const,
+    color: "#fff",
+    fontFamily: "Inter_700Bold",
+  },
+  immigrationSub: {
     fontSize: 12,
     color: "rgba(255,255,255,0.8)",
     fontFamily: "Inter_400Regular",
