@@ -41,6 +41,11 @@ export default function IncidentsScreen() {
     router.push({ pathname: "/incident/[id]", params: { id: incident.id } });
   }, []);
 
+  const handleEncounterMode = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    router.push("/encounter");
+  }, []);
+
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   return (
@@ -57,6 +62,20 @@ export default function IncidentsScreen() {
           <Feather name="plus" size={22} color="#fff" />
         </Pressable>
       </View>
+
+      <Pressable
+        style={({ pressed }) => [styles.encounterBanner, { opacity: pressed ? 0.9 : 1 }]}
+        onPress={handleEncounterMode}
+      >
+        <View style={styles.encounterIconWrap}>
+          <Feather name="shield" size={22} color="#fff" />
+        </View>
+        <View style={styles.encounterText}>
+          <Text style={styles.encounterTitle}>Encounter Mode</Text>
+          <Text style={styles.encounterSub}>Scripts · Demands · Rights — flip the power dynamic</Text>
+        </View>
+        <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
+      </Pressable>
 
       {incidents.length === 0 && !isLoading ? (
         <View style={styles.emptyState}>
@@ -107,7 +126,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 12,
     paddingTop: 8,
   },
   headerTitle: {
@@ -129,6 +148,42 @@ const styles = StyleSheet.create({
     backgroundColor: C.accent,
     alignItems: "center",
     justifyContent: "center",
+  },
+  encounterBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: C.accent,
+    shadowColor: C.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  encounterIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  encounterText: { flex: 1, gap: 2 },
+  encounterTitle: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    color: "#fff",
+    fontFamily: "Inter_700Bold",
+  },
+  encounterSub: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.8)",
+    fontFamily: "Inter_400Regular",
   },
   list: {
     paddingHorizontal: 16,
