@@ -17,6 +17,7 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 
 import Colors from "@/constants/colors";
 
@@ -169,6 +170,20 @@ export default function RightsScreen() {
             {selectedState ? selectedState.name : "Select your state for state-specific laws"}
           </Text>
           <Feather name="chevron-down" size={16} color={C.textMuted} />
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [styles.complaintDirBtn, { opacity: pressed ? 0.88 : 1 }]}
+          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push("/complaints"); }}
+        >
+          <View style={styles.complaintDirIcon}>
+            <Feather name="folder" size={20} color="#6366f1" />
+          </View>
+          <View style={styles.complaintDirText}>
+            <Text style={styles.complaintDirTitle}>Complaint Directory</Text>
+            <Text style={styles.complaintDirSub}>File formal complaints · All 50 states + Federal agencies</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color="#6366f188" />
         </Pressable>
 
         <Text style={styles.sectionLabel}>COMMON SCENARIOS</Text>
@@ -424,6 +439,38 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: C.textMuted,
+    fontFamily: "Inter_400Regular",
+  },
+  complaintDirBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#6366f114",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: "#6366f133",
+    marginBottom: 20,
+  },
+  complaintDirIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 11,
+    backgroundColor: "#6366f122",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  complaintDirText: { flex: 1, gap: 2 },
+  complaintDirTitle: {
+    fontSize: 15,
+    fontWeight: "700" as const,
+    color: "#F0F4F8",
+    fontFamily: "Inter_700Bold",
+  },
+  complaintDirSub: {
+    fontSize: 12,
+    color: "#7a9ab8",
     fontFamily: "Inter_400Regular",
   },
   sectionLabel: {
