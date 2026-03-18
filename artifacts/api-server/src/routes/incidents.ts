@@ -89,11 +89,19 @@ router.get("/:id/events", async (req, res) => {
 
 router.post("/:id/events", async (req, res) => {
   try {
-    const { type, description, timestamp_seconds, confidence } = req.body;
+    const { type, description, timestamp_seconds, confidence, wall_clock_time, rights_violated } = req.body;
     if (!type) return res.status(400).json({ error: "type is required" });
     const [event] = await db
       .insert(eventsTable)
-      .values({ incident_id: req.params.id, type, description, timestamp_seconds, confidence })
+      .values({
+        incident_id: req.params.id,
+        type,
+        description,
+        timestamp_seconds,
+        confidence,
+        wall_clock_time: wall_clock_time ? new Date(wall_clock_time) : new Date(),
+        rights_violated: rights_violated || null,
+      })
       .returning();
     res.status(201).json(event);
   } catch (err) {

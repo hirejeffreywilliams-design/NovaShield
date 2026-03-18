@@ -8,6 +8,8 @@ export const eventsTable = pgTable("incident_events", {
   type: text("type").notNull(),
   description: text("description"),
   timestamp_seconds: real("timestamp_seconds"),
+  wall_clock_time: timestamp("wall_clock_time"),
+  rights_violated: text("rights_violated"),
   confidence: real("confidence"),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });

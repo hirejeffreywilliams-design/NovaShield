@@ -2,7 +2,17 @@
 
 ## Overview
 
-Full-stack mobile app for recording and documenting police-public encounters. Includes a React Native (Expo) mobile app and an Express API backend backed by PostgreSQL.
+Full-stack civil rights accountability mobile app for recording and documenting police encounters. Features GPS geolocation, AI-powered squad car/badge/officer identification via photo evidence, constitutional rights tagging on events, evidence-grade report generation, and a precise incident timeline.
+
+## Key Features
+
+- **Auto-GPS capture** when recording starts (expo-location + reverse geocode to address)
+- **AI Photo Evidence** — photograph squad cars/badges, GPT vision extracts unit #, license plate, department, officer description
+- **Constitutional Rights Tagging** — every event maps to an Amendment (1st, 4th, 5th, 8th, 14th)
+- **Evidence Timeline** — chronological events with wall-clock timestamps
+- **Officer lookup** by badge number, officer profile management
+- **AI Report Generation** — evidence-grade reports with findings and recommendations
+- **Incident management** — full CRUD with GPS coordinates, duration timer, status tracking
 
 ## Stack
 

@@ -25,6 +25,8 @@ export interface IncidentEvent {
   type: string;
   description?: string;
   timestamp_seconds?: number;
+  wall_clock_time?: string | null;
+  rights_violated?: string | null;
   confidence?: number;
   created_at: string;
 }
@@ -49,6 +51,18 @@ export interface Report {
   findings?: string[];
   recommendations?: string[];
   created_at: string;
+}
+
+export interface EvidencePhoto {
+  id: string;
+  incident_id: string;
+  source?: string | null;
+  ai_analysis?: string | null;
+  vehicle_unit?: string | null;
+  license_plate?: string | null;
+  officer_description?: string | null;
+  department_markings?: string | null;
+  captured_at: string;
 }
 
 const BASE_URL = process.env.EXPO_PUBLIC_DOMAIN
@@ -85,6 +99,8 @@ interface IncidentContextType {
   resolveOfficer: (badge: string) => Promise<{ found: boolean; officer: Officer | null; badge_number: string }>;
   generateReport: (incidentId: string) => Promise<Report>;
   getReport: (incidentId: string) => Promise<Report | null>;
+  analyzeEvidence: (incidentId: string, image_base64: string, source?: string) => Promise<EvidencePhoto>;
+  getEvidence: (incidentId: string) => Promise<EvidencePhoto[]>;
 }
 
 const IncidentContext = createContext<IncidentContextType | null>(null);
@@ -198,6 +214,38 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const analyzeEvidence = useCallback(async (incidentId: string, image_base64: string, source = "camera"): Promise<EvidencePhoto> => {
+    const result = await apiFetch<{
+      photo_id: string;
+      analysis: string;
+      extracted: {
+        vehicle_unit?: string | null;
+        license_plate?: string | null;
+        officer_description?: string | null;
+        department_markings?: string | null;
+      };
+    }>(`/incidents/${incidentId}/analyze-image`, {
+      method: "POST",
+      body: JSON.stringify({ image_base64, source }),
+    });
+    return {
+      id: result.photo_id,
+      incident_id: incidentId,
+      source,
+      ai_analysis: result.analysis,
+      vehicle_unit: result.extracted.vehicle_unit,
+      license_plate: result.extracted.license_plate,
+      officer_description: result.extracted.officer_description,
+      department_markings: result.extracted.department_markings,
+      captured_at: new Date().toISOString(),
+    };
+  }, []);
+
+  const getEvidence = useCallback(async (incidentId: string): Promise<EvidencePhoto[]> => {
+    const data = await apiFetch<{ evidence: EvidencePhoto[] }>(`/incidents/${incidentId}/evidence`);
+    return data.evidence;
+  }, []);
+
   return (
     <IncidentContext.Provider value={{
       incidents, officers, reports, isLoading, error,
@@ -206,6 +254,7 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
       getIncidentEvents, addEvent,
       createOfficer, resolveOfficer,
       generateReport, getReport,
+      analyzeEvidence, getEvidence,
     }}>
       {children}
     </IncidentContext.Provider>

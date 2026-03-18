@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import * as Location from "expo-location";
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 
 import Colors from "@/constants/colors";
@@ -28,11 +29,14 @@ export default function NewIncidentScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [timerInterval, setTimerInterval] = useState<ReturnType<typeof setInterval> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
+  const [latitude, setLatitude] = useState<number | undefined>();
+  const [longitude, setLongitude] = useState<number | undefined>();
+  const [gpsStatus, setGpsStatus] = useState<"idle" | "loading" | "found" | "denied">("idle");
   const [officerBadge, setOfficerBadge] = useState("");
   const [officerName, setOfficerName] = useState("");
   const [notes, setNotes] = useState("");
@@ -44,6 +48,36 @@ export default function NewIncidentScreen() {
     transform: [{ scale: pulseScale.value }],
     opacity: pulseOpacity.value,
   }));
+
+  const captureLocation = useCallback(async () => {
+    if (Platform.OS === "web") return;
+    setGpsStatus("loading");
+    try {
+      const [perm] = await Promise.all([Location.requestForegroundPermissionsAsync()]);
+      if (perm.status !== "granted") {
+        setGpsStatus("denied");
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      setLatitude(pos.coords.latitude);
+      setLongitude(pos.coords.longitude);
+
+      try {
+        const [geo] = await Location.reverseGeocodeAsync({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+        if (geo) {
+          const parts = [geo.streetNumber, geo.street, geo.city, geo.region].filter(Boolean);
+          setLocation(parts.join(", "));
+        }
+      } catch {
+      }
+      setGpsStatus("found");
+    } catch {
+      setGpsStatus("denied");
+    }
+  }, []);
 
   const startRecording = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
@@ -60,22 +94,28 @@ export default function NewIncidentScreen() {
       -1,
       false
     );
-    const interval = setInterval(() => {
+    timerRef.current = setInterval(() => {
       setElapsed(Math.floor((Date.now() - now) / 1000));
     }, 1000);
-    setTimerInterval(interval);
-  }, []);
+    captureLocation();
+  }, [captureLocation]);
 
   const stopRecording = useCallback(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setIsRecording(false);
     pulseScale.value = withTiming(1);
     pulseOpacity.value = withTiming(1);
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      setTimerInterval(null);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
-  }, [timerInterval]);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {
@@ -89,6 +129,8 @@ export default function NewIncidentScreen() {
         title: title.trim(),
         description: description.trim() || undefined,
         location: location.trim() || undefined,
+        latitude,
+        longitude,
         officer_badge: officerBadge.trim() || undefined,
         officer_name: officerName.trim() || undefined,
         duration_seconds: elapsed > 0 ? elapsed : undefined,
@@ -97,12 +139,12 @@ export default function NewIncidentScreen() {
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace({ pathname: "/incident/[id]", params: { id: incident.id } });
-    } catch (err) {
+    } catch {
       Alert.alert("Error", "Failed to save incident. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  }, [title, description, location, officerBadge, officerName, notes, elapsed, isRecording, stopRecording, createIncident]);
+  }, [title, description, location, latitude, longitude, officerBadge, officerName, notes, elapsed, isRecording, stopRecording, createIncident]);
 
   function formatElapsed(sec: number) {
     const m = Math.floor(sec / 60).toString().padStart(2, "0");
@@ -149,6 +191,25 @@ export default function NewIncidentScreen() {
           <Text style={styles.recordLabel}>
             {isRecording ? `Recording  ${formatElapsed(elapsed)}` : elapsed > 0 ? `Recorded ${formatElapsed(elapsed)}` : "Tap to Record"}
           </Text>
+          {isRecording && (
+            <View style={styles.gpsRow}>
+              {gpsStatus === "loading" && <ActivityIndicator size="small" color={C.accent} />}
+              {gpsStatus === "found" && latitude !== undefined && (
+                <>
+                  <Feather name="map-pin" size={12} color="#22c55e" />
+                  <Text style={styles.gpsText}>
+                    GPS {latitude.toFixed(5)}, {longitude?.toFixed(5)}
+                  </Text>
+                </>
+              )}
+              {gpsStatus === "denied" && (
+                <>
+                  <Feather name="map-pin" size={12} color={C.textMuted} />
+                  <Text style={[styles.gpsText, { color: C.textMuted }]}>Location unavailable</Text>
+                </>
+              )}
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -181,10 +242,15 @@ export default function NewIncidentScreen() {
             </View>
             <View style={styles.divider} />
             <View style={styles.inputRow}>
-              <Feather name="map-pin" size={16} color={C.textMuted} style={styles.inputIcon} />
+              <Feather
+                name="map-pin"
+                size={16}
+                color={gpsStatus === "found" ? "#22c55e" : C.textMuted}
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
-                placeholder="Location (address or description)"
+                placeholder="Location (auto-filled from GPS)"
                 placeholderTextColor={C.textMuted}
                 value={location}
                 onChangeText={setLocation}
@@ -248,10 +314,7 @@ export default function NewIncidentScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: C.background,
-  },
+  container: { flex: 1, backgroundColor: C.background },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -296,9 +359,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: C.accent + "22",
   },
-  recordRippleActive: {
-    backgroundColor: C.accent + "33",
-  },
+  recordRippleActive: { backgroundColor: C.accent + "33" },
   recordBtn: {
     width: 80,
     height: 80,
@@ -309,19 +370,31 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: C.accent,
   },
-  recordBtnActive: {
-    backgroundColor: C.accent,
-    borderColor: C.accent,
-  },
+  recordBtnActive: { backgroundColor: C.accent, borderColor: C.accent },
   recordLabel: {
     fontSize: 14,
     color: C.textMuted,
     fontFamily: "Inter_500Medium",
     fontWeight: "500" as const,
   },
-  section: {
-    marginBottom: 20,
+  gpsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: C.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: C.border,
   },
+  gpsText: {
+    fontSize: 11,
+    color: "#22c55e",
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500" as const,
+  },
+  section: { marginBottom: 20 },
   sectionLabel: {
     fontSize: 11,
     fontWeight: "600" as const,
@@ -344,18 +417,14 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
   },
-  inputIcon: {
-    marginTop: 2,
-  },
+  inputIcon: { marginTop: 2 },
   input: {
     flex: 1,
     fontSize: 15,
     color: C.text,
     fontFamily: "Inter_400Regular",
   },
-  multilineInput: {
-    minHeight: 70,
-  },
+  multilineInput: { minHeight: 70 },
   divider: {
     height: 1,
     backgroundColor: C.border,
