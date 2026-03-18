@@ -1,0 +1,20 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "V-Pe9Qdy9bdpux_nfUhqn"
+uri = "file://artifacts/police-audit-mobile/assets/images/civilshield-logo-v1.png"
+type = "image"
+title = "Option 1 — Eagle + Scales (Navy/Silver/Crimson)"
+
+[[outputs]]
+id = "YbJ0x2zUAu9F7NRkViXgi"
+uri = "file://artifacts/police-audit-mobile/assets/images/civilshield-logo-v2.png"
+type = "image"
+title = "Option 2 — Raised Fist + Torch (Liberty Inspired)"
+
+[[outputs]]
+id = "s3UlPC-tBRfl0-DR__Py7"
+uri = "file://artifacts/police-audit-mobile/assets/images/civilshield-logo-v3.png"
+type = "image"
+title = "Option 3 — Scales of Justice (Split Shield)"
