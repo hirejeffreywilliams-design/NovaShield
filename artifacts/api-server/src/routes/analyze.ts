@@ -1,7 +1,12 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { evidencePhotosTable, evidenceIntegrityTable } from "@workspace/db/schema";
-import { eq } from "drizzle-orm";
+import {
+  evidencePhotosTable,
+  evidenceIntegrityTable,
+  policyKnowledgeTable,
+  analysisResultsTable,
+} from "@workspace/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import {
   computeImageHash,
@@ -17,6 +22,71 @@ import {
 } from "../lib/integrity";
 
 const router: IRouter = Router();
+
+async function fetchPolicyContext(stateCode?: string | null): Promise<{
+  contextText: string;
+  policyIds: string[];
+}> {
+  try {
+    const federal = await db
+      .select()
+      .from(policyKnowledgeTable)
+      .where(
+        and(
+          eq(policyKnowledgeTable.jurisdiction_type, "federal"),
+          inArray(policyKnowledgeTable.policy_type, ["case_law", "statute", "visual_pattern"])
+        )
+      )
+      .limit(10);
+
+    let statePolicies: typeof federal = [];
+    if (stateCode) {
+      statePolicies = await db
+        .select()
+        .from(policyKnowledgeTable)
+        .where(eq(policyKnowledgeTable.state_code, stateCode.toUpperCase()))
+        .limit(5);
+    }
+
+    const patterns = await db
+      .select()
+      .from(policyKnowledgeTable)
+      .where(eq(policyKnowledgeTable.policy_type, "visual_pattern"))
+      .limit(4);
+
+    const allPolicies = [...federal, ...statePolicies, ...patterns];
+    const unique = Array.from(new Map(allPolicies.map((p) => [p.id, p])).values());
+
+    if (unique.length === 0) return { contextText: "", policyIds: [] };
+
+    const lines: string[] = [
+      `=== SHIELD INTELLIGENCE ENGINE — POLICY CONTEXT ===`,
+      `Jurisdiction: ${stateCode ? stateCode.toUpperCase() + " (State)" : "Federal only"}`,
+      `Policies loaded: ${unique.length}`,
+      ``,
+      `Use the following legal standards and visual violation patterns when analyzing this image.`,
+      `For each potential_concern you identify, cite the most applicable legal authority.`,
+      ``,
+    ];
+
+    for (const p of unique) {
+      lines.push(`--- [${p.category.toUpperCase()}] ${p.title} ---`);
+      lines.push(p.content);
+      if (p.legal_authority) lines.push(`Legal Authority: ${p.legal_authority}`);
+      lines.push("");
+    }
+
+    lines.push(`=== END POLICY CONTEXT ===`);
+    lines.push(`Now analyze the submitted image using the above standards.`);
+
+    return {
+      contextText: lines.join("\n"),
+      policyIds: unique.map((p) => p.id),
+    };
+  } catch {
+    return { contextText: "", policyIds: [] };
+  }
+}
 
 const STRUCTURED_ANALYSIS_PROMPT = `You are an expert forensic scene analyst and digital forensics specialist for civil rights accountability documentation. Produce a highly accurate, structured JSON analysis of this image.
 
@@ -132,10 +202,12 @@ Return ONLY valid JSON with this exact schema. No markdown, no text outside the 
 
 router.post("/:id/analyze-image", async (req, res) => {
   try {
-    const { image_base64, source = "camera", gps_lat, gps_lon } = req.body;
+    const { image_base64, source = "camera", gps_lat, gps_lon, state_code } = req.body;
     if (!image_base64) {
       return res.status(400).json({ error: "image_base64 is required" });
     }
+
+    const { contextText, policyIds } = await fetchPolicyContext(state_code || null);
 
     const captureTimestamp = new Date();
 
@@ -159,25 +231,23 @@ router.post("/:id/analyze-image", async (req, res) => {
     const timestampCheck = checkTimestampPlausibility(captureTimestamp);
     const isDuplicate = await checkDuplicateRisk(req.params.id, imageHash);
 
+    const messageContent: any[] = [{ type: "text", text: STRUCTURED_ANALYSIS_PROMPT }];
+    if (contextText) {
+      messageContent.push({ type: "text", text: contextText });
+    }
+    messageContent.push({
+      type: "image_url",
+      image_url: {
+        url: `data:image/jpeg;base64,${image_base64}`,
+        detail: "high",
+      },
+    });
+
     const aiResponse = await openai.chat.completions.create({
       model: "gpt-5.2",
       max_completion_tokens: 8192,
       response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: STRUCTURED_ANALYSIS_PROMPT },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${image_base64}`,
-                detail: "high",
-              },
-            },
-          ],
-        },
-      ],
+      messages: [{ role: "user", content: messageContent }],
     });
 
     const rawContent = aiResponse.choices[0]?.message?.content || "{}";
@@ -265,6 +335,22 @@ router.post("/:id/analyze-image", async (req, res) => {
       last_verified_at: new Date(),
     });
 
+    const [storedAnalysis] = await db
+      .insert(analysisResultsTable)
+      .values({
+        incident_id: req.params.id as any,
+        evidence_photo_id: photo.id as any,
+        state_code: state_code || null,
+        policy_ids_used: policyIds,
+        policy_count_injected: policyIds.length,
+        scene_analysis: sceneAnalysis,
+        potential_concerns: sceneAnalysis.potential_concerns || [],
+        overall_confidence: overallConfidence,
+        manipulation_risk: manipulationRisk,
+        model_version: "gpt-5.2",
+      })
+      .returning({ id: analysisResultsTable.id });
+
     await writeAuditLog({
       incident_id: req.params.id,
       evidence_photo_id: photo.id,
@@ -285,6 +371,12 @@ router.post("/:id/analyze-image", async (req, res) => {
 
     res.json({
       photo_id: photo.id,
+      analysis_result_id: storedAnalysis?.id || null,
+      policy_context: {
+        policies_loaded: policyIds.length,
+        state_jurisdiction: state_code || null,
+        engine_version: "SIE-1.0",
+      },
       scene_analysis: sceneAnalysis,
       integrity: {
         image_hash: imageHash,

@@ -70,6 +70,16 @@ const POWER_TOOLS = [
     border: "#6366f144",
     route: "/complaints",
   },
+  {
+    id: "intelligence",
+    title: "Shield Intelligence",
+    sub: "Self-Learning AI Engine",
+    icon: "cpu",
+    color: "#a855f7",
+    bg: "#a855f718",
+    border: "#a855f744",
+    route: "/intelligence",
+  },
 ];
 
 export default function IncidentsScreen() {
