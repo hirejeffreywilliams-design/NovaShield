@@ -21,6 +21,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "person.2", selected: "person.2.fill" }} />
         <Label>Officers</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="rights">
+        <Icon sf={{ default: "book.open", selected: "book.open.fill" }} />
+        <Label>Rights</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="reports">
         <Icon sf={{ default: "doc.text", selected: "doc.text.fill" }} />
         <Label>Reports</Label>
@@ -31,8 +35,6 @@ function NativeTabLayout() {
 
 function ClassicTabLayout() {
   const colorScheme = useColorScheme();
-  const safeAreaInsets = useSafeAreaInsets();
-  const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
   const C = Colors.light;
@@ -53,15 +55,9 @@ function ClassicTabLayout() {
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView
-              intensity={80}
-              tint="dark"
-              style={StyleSheet.absoluteFill}
-            />
+            <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
-            <View
-              style={[StyleSheet.absoluteFill, { backgroundColor: C.background }]}
-            />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: C.background }]} />
           ) : null,
       }}
     >
@@ -86,6 +82,18 @@ function ClassicTabLayout() {
               <SymbolView name="person.2" tintColor={color} size={24} />
             ) : (
               <Feather name="users" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="rights"
+        options={{
+          title: "Rights",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="book.open" tintColor={color} size={24} />
+            ) : (
+              <Feather name="book-open" size={22} color={color} />
             ),
         }}
       />
