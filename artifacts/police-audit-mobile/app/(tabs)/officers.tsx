@@ -16,6 +16,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
@@ -62,7 +63,7 @@ interface PostBoard {
   notes: string;
 }
 
-function OfficerCard({ officer, index }: { officer: Officer; index: number }) {
+function OfficerCard({ officer, index, onPress }: { officer: Officer; index: number; onPress?: () => void }) {
   const initials = [officer.name?.split(" ")[0]?.[0], officer.name?.split(" ")[1]?.[0]]
     .filter(Boolean)
     .join("")
@@ -70,7 +71,7 @@ function OfficerCard({ officer, index }: { officer: Officer; index: number }) {
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 40).duration(250)}>
-      <View style={styles.officerCard}>
+      <Pressable style={({ pressed }) => [styles.officerCard, { opacity: pressed ? 0.85 : 1 }]} onPress={onPress}>
         <View style={styles.avatarCircle}>
           <Text style={styles.avatarText}>{initials}</Text>
         </View>
@@ -93,17 +94,20 @@ function OfficerCard({ officer, index }: { officer: Officer; index: number }) {
             </Text>
           ) : null}
         </View>
-        {(officer.incident_count ?? 0) > 1 ? (
-          <View style={[styles.incidentCountBadge, { backgroundColor: "#ef444422" }]}>
-            <Feather name="alert-triangle" size={10} color="#ef4444" />
-            <Text style={[styles.incidentCount, { color: "#ef4444" }]}>{officer.incident_count}</Text>
-          </View>
-        ) : (officer.incident_count ?? 0) === 1 ? (
-          <View style={styles.incidentCountBadge}>
-            <Text style={styles.incidentCount}>{officer.incident_count}</Text>
-          </View>
-        ) : null}
-      </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          {(officer.incident_count ?? 0) > 1 ? (
+            <View style={[styles.incidentCountBadge, { backgroundColor: "#ef444422" }]}>
+              <Feather name="alert-triangle" size={10} color="#ef4444" />
+              <Text style={[styles.incidentCount, { color: "#ef4444" }]}>{officer.incident_count}</Text>
+            </View>
+          ) : (officer.incident_count ?? 0) === 1 ? (
+            <View style={styles.incidentCountBadge}>
+              <Text style={styles.incidentCount}>{officer.incident_count}</Text>
+            </View>
+          ) : null}
+          <Feather name="chevron-right" size={16} color={C.textMuted} />
+        </View>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -679,7 +683,16 @@ export default function OfficersScreen() {
             <FlatList
               data={officers}
               keyExtractor={(item) => item.id}
-              renderItem={({ item, index }) => <OfficerCard officer={item} index={index} />}
+              renderItem={({ item, index }) => (
+                <OfficerCard
+                  officer={item}
+                  index={index}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    router.push({ pathname: "/officer/[id]", params: { id: item.id } });
+                  }}
+                />
+              )}
               contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Platform.OS === "web" ? 84 + 34 : 120 }}
               showsVerticalScrollIndicator={false}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.accent} />}
