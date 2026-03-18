@@ -5,3 +5,5 @@ export * from "./disciplinary_records";
 export * from "./reports";
 export * from "./evidence_photos";
 export * from "./integrity";
+export * from "./trusted_contacts";
+export * from "./sos_events";

@@ -8,6 +8,7 @@ import rightsRouter from "./rights";
 import departmentsRouter from "./departments";
 import integrityRouter from "./integrity";
 import immigrationRouter from "./immigration";
+import sosRouter from "./sos";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use("/reports", reportsRouter);
 router.use("/rights", rightsRouter);
 router.use("/departments", departmentsRouter);
 router.use(immigrationRouter);
+router.use("/sos", sosRouter);
 
 export default router;

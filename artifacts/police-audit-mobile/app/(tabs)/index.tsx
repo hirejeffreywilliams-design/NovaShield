@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,11 +11,20 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
 import Colors from "@/constants/colors";
 import { useIncidents, Incident } from "@/contexts/IncidentContext";
+import { useSOS } from "@/contexts/SOSContext";
 import { IncidentCard } from "@/components/IncidentCard";
 
 const C = Colors.light;
@@ -65,8 +74,36 @@ const POWER_TOOLS = [
 
 export default function IncidentsScreen() {
   const { incidents, isLoading, refreshIncidents } = useIncidents();
+  const { activeEvent } = useSOS();
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
+
+  const sosGlow = useSharedValue(0.6);
+  const sosScale = useSharedValue(1);
+
+  useEffect(() => {
+    sosGlow.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.6, { duration: 900, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+    sosScale.value = withRepeat(
+      withSequence(
+        withTiming(1.04, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const sosGlowStyle = useAnimatedStyle(() => ({
+    opacity: sosGlow.value,
+    transform: [{ scale: sosScale.value }],
+  }));
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -77,6 +114,11 @@ export default function IncidentsScreen() {
   const handleNewIncident = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push("/incident/new");
+  }, []);
+
+  const handleSOS = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    router.push("/sos");
   }, []);
 
   const handleIncidentPress = useCallback((incident: Incident) => {
@@ -105,6 +147,26 @@ export default function IncidentsScreen() {
           <Feather name="plus" size={22} color="#fff" />
         </Pressable>
       </View>
+
+      <Pressable
+        style={({ pressed }) => [styles.sosButton, { opacity: pressed ? 0.9 : 1 }]}
+        onPress={handleSOS}
+      >
+        <Animated.View style={[styles.sosGlow, sosGlowStyle]} />
+        <Feather name="zap" size={20} color="#fff" />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.sosLabel}>
+            {activeEvent ? "SOS ACTIVE — Tap to manage" : "SOS Emergency Button"}
+          </Text>
+          <Text style={styles.sosSub}>
+            {activeEvent ? "Alert sent · Timer running · Tap for status options" : "Instant location alert to trusted contacts · Know your rights"}
+          </Text>
+        </View>
+        {activeEvent && (
+          <View style={styles.sosActiveDot} />
+        )}
+        <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.6)" />
+      </Pressable>
 
       <View style={styles.powerGrid}>
         {POWER_TOOLS.map((tool) => (
@@ -210,6 +272,50 @@ const styles = StyleSheet.create({
     backgroundColor: C.accent,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  sosButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginHorizontal: 14,
+    marginBottom: 10,
+    backgroundColor: "#E53935",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    overflow: "hidden",
+    position: "relative",
+  },
+  sosGlow: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#ff000030",
+    borderRadius: 16,
+  },
+  sosLabel: {
+    fontSize: 14,
+    fontWeight: "700" as const,
+    color: "#fff",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.2,
+  },
+  sosSub: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.75)",
+    fontFamily: "Inter_400Regular",
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  sosActiveDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#fff",
+    marginRight: 4,
   },
 
   powerGrid: {

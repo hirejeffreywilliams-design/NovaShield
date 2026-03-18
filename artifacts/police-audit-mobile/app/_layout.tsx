@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { IncidentProvider } from "@/contexts/IncidentContext";
+import { SOSProvider } from "@/contexts/SOSContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -52,6 +53,20 @@ function RootLayoutNav() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="sos"
+        options={{
+          presentation: "modal",
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="contacts"
+        options={{
+          presentation: "card",
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
@@ -77,11 +92,13 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <IncidentProvider>
-            <GestureHandlerRootView>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
+            <SOSProvider>
+              <GestureHandlerRootView>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </SOSProvider>
           </IncidentProvider>
         </QueryClientProvider>
       </ErrorBoundary>
