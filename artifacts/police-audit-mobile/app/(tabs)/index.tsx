@@ -20,6 +20,49 @@ import { IncidentCard } from "@/components/IncidentCard";
 
 const C = Colors.light;
 
+const POWER_TOOLS = [
+  {
+    id: "encounter",
+    title: "Encounter Mode",
+    sub: "Scripts · Demands · Rights",
+    icon: "shield",
+    color: "#E53935",
+    bg: "#E5393518",
+    border: "#E5393544",
+    route: "/encounter",
+  },
+  {
+    id: "corruption",
+    title: "Report Corruption",
+    sub: "Document · Report · Expose",
+    icon: "target",
+    color: "#f59e0b",
+    bg: "#f59e0b18",
+    border: "#f59e0b44",
+    route: "/corruption",
+  },
+  {
+    id: "immigration",
+    title: "Immigration Rights",
+    sub: "ICE · CBP · Detention",
+    icon: "globe",
+    color: "#0891b2",
+    bg: "#0891b218",
+    border: "#0891b244",
+    route: "/immigration",
+  },
+  {
+    id: "complaints",
+    title: "File a Complaint",
+    sub: "All 50 states + Federal",
+    icon: "folder",
+    color: "#6366f1",
+    bg: "#6366f118",
+    border: "#6366f144",
+    route: "/complaints",
+  },
+];
+
 export default function IncidentsScreen() {
   const { incidents, isLoading, refreshIncidents } = useIncidents();
   const [refreshing, setRefreshing] = useState(false);
@@ -41,14 +84,9 @@ export default function IncidentsScreen() {
     router.push({ pathname: "/incident/[id]", params: { id: incident.id } });
   }, []);
 
-  const handleEncounterMode = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    router.push("/encounter");
-  }, []);
-
-  const handleImmigration = useCallback(() => {
+  const handleTool = useCallback((route: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push("/immigration");
+    router.push(route as any);
   }, []);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
@@ -57,8 +95,8 @@ export default function IncidentsScreen() {
     <View style={[styles.container, { paddingTop: topPad }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Incidents</Text>
-          <Text style={styles.headerSub}>{incidents.length} recorded</Text>
+          <Text style={styles.headerTitle}>CitizenWatch</Text>
+          <Text style={styles.headerSub}>Hold power accountable · {incidents.length} incident{incidents.length !== 1 ? "s" : ""} recorded</Text>
         </View>
         <Pressable
           style={({ pressed }) => [styles.newBtn, { opacity: pressed ? 0.8 : 1 }]}
@@ -68,46 +106,50 @@ export default function IncidentsScreen() {
         </Pressable>
       </View>
 
-      <Pressable
-        style={({ pressed }) => [styles.encounterBanner, { opacity: pressed ? 0.9 : 1 }]}
-        onPress={handleEncounterMode}
-      >
-        <View style={styles.encounterIconWrap}>
-          <Feather name="shield" size={22} color="#fff" />
-        </View>
-        <View style={styles.encounterText}>
-          <Text style={styles.encounterTitle}>Encounter Mode</Text>
-          <Text style={styles.encounterSub}>Scripts · Demands · Rights — flip the power dynamic</Text>
-        </View>
-        <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
-      </Pressable>
+      <View style={styles.powerGrid}>
+        {POWER_TOOLS.map((tool) => (
+          <Pressable
+            key={tool.id}
+            style={({ pressed }) => [
+              styles.powerCard,
+              { backgroundColor: tool.bg, borderColor: tool.border, opacity: pressed ? 0.85 : 1 },
+            ]}
+            onPress={() => handleTool(tool.route)}
+          >
+            <View style={[styles.powerIcon, { backgroundColor: tool.color + "22" }]}>
+              <Feather name={tool.icon as any} size={22} color={tool.color} />
+            </View>
+            <Text style={[styles.powerTitle, { color: tool.color }]}>{tool.title}</Text>
+            <Text style={styles.powerSub}>{tool.sub}</Text>
+          </Pressable>
+        ))}
+      </View>
 
-      <Pressable
-        style={({ pressed }) => [styles.immigrationBanner, { opacity: pressed ? 0.9 : 1 }]}
-        onPress={handleImmigration}
-      >
-        <View style={styles.immigrationIconWrap}>
-          <Feather name="globe" size={20} color="#fff" />
-        </View>
-        <View style={styles.encounterText}>
-          <Text style={styles.immigrationTitle}>Immigration Rights</Text>
-          <Text style={styles.immigrationSub}>ICE · CBP · Detention — verified legal rights</Text>
-        </View>
-        <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" />
-      </Pressable>
+      <View style={styles.incidentsHeader}>
+        <Text style={styles.incidentsTitle}>Recorded Incidents</Text>
+        {incidents.length > 0 && (
+          <Pressable onPress={handleNewIncident} style={styles.incidentAddBtn}>
+            <Feather name="plus" size={14} color={C.accent} />
+            <Text style={styles.incidentAddText}>New</Text>
+          </Pressable>
+        )}
+      </View>
 
       {incidents.length === 0 && !isLoading ? (
         <View style={styles.emptyState}>
-          <Feather name="shield" size={56} color={C.border} />
-          <Text style={styles.emptyTitle}>No Incidents Yet</Text>
+          <View style={styles.emptyIconWrap}>
+            <Feather name="shield" size={36} color={C.accent} />
+          </View>
+          <Text style={styles.emptyTitle}>No Incidents Recorded</Text>
           <Text style={styles.emptyText}>
-            Tap + to record your first police encounter
+            Use the tools above to document encounters, report corruption, or know your rights. Tap + to record your first incident.
           </Text>
           <Pressable
             style={({ pressed }) => [styles.emptyBtn, { opacity: pressed ? 0.8 : 1 }]}
             onPress={handleNewIncident}
           >
-            <Text style={styles.emptyBtnText}>Record Incident</Text>
+            <Feather name="edit-3" size={16} color="#fff" />
+            <Text style={styles.emptyBtnText}>Record First Incident</Text>
           </Pressable>
         </View>
       ) : (
@@ -145,17 +187,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: 10,
     paddingTop: 8,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "700" as const,
     color: C.text,
     fontFamily: "Inter_700Bold",
+    letterSpacing: -0.3,
   },
   headerSub: {
-    fontSize: 13,
+    fontSize: 12,
     color: C.textMuted,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
@@ -168,111 +211,117 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  encounterBanner: {
+
+  powerGrid: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 16,
-    backgroundColor: C.accent,
-    shadowColor: C.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
+    flexWrap: "wrap",
+    paddingHorizontal: 14,
+    gap: 10,
+    marginBottom: 10,
   },
-  encounterIconWrap: {
+  powerCard: {
+    width: "47.5%",
+    borderRadius: 16,
+    padding: 14,
+    gap: 8,
+    borderWidth: 1,
+    minHeight: 110,
+  },
+  powerIcon: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.2)",
     alignItems: "center",
     justifyContent: "center",
   },
-  encounterText: { flex: 1, gap: 2 },
-  encounterTitle: {
-    fontSize: 16,
+  powerTitle: {
+    fontSize: 14,
     fontWeight: "700" as const,
-    color: "#fff",
     fontFamily: "Inter_700Bold",
+    lineHeight: 18,
   },
-  encounterSub: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.8)",
+  powerSub: {
+    fontSize: 11,
+    color: "#7a9ab8",
     fontFamily: "Inter_400Regular",
+    lineHeight: 15,
   },
-  immigrationBanner: {
+
+  incidentsHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-    borderRadius: 16,
-    backgroundColor: "#0e7490",
-    shadowColor: "#0891b2",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginBottom: 8,
   },
-  immigrationIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 11,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  immigrationTitle: {
-    fontSize: 15,
+  incidentsTitle: {
+    fontSize: 13,
     fontWeight: "700" as const,
-    color: "#fff",
+    color: C.textMuted,
     fontFamily: "Inter_700Bold",
+    letterSpacing: 0.8,
+    textTransform: "uppercase" as const,
   },
-  immigrationSub: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.8)",
-    fontFamily: "Inter_400Regular",
+  incidentAddBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
+  incidentAddText: {
+    fontSize: 13,
+    color: C.accent,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600" as const,
+  },
+
   list: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 4,
   },
   emptyState: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 40,
-    gap: 16,
+    gap: 14,
+  },
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: C.accent + "18",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: C.accent + "33",
   },
   emptyTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "700" as const,
     color: C.text,
     fontFamily: "Inter_700Bold",
+    textAlign: "center" as const,
   },
   emptyText: {
-    fontSize: 15,
+    fontSize: 14,
     color: C.textMuted,
-    textAlign: "center",
+    textAlign: "center" as const,
     fontFamily: "Inter_400Regular",
-    lineHeight: 22,
+    lineHeight: 21,
   },
   emptyBtn: {
-    marginTop: 8,
+    marginTop: 4,
     paddingVertical: 14,
     paddingHorizontal: 28,
     backgroundColor: C.accent,
     borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   emptyBtnText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600" as const,
     fontFamily: "Inter_600SemiBold",
   },
