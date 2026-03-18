@@ -10,3 +10,4 @@ export * from "./sos_events";
 export * from "./policy_knowledge";
 export * from "./analysis_results";
 export * from "./analysis_feedback";
+export * from "./system_health";

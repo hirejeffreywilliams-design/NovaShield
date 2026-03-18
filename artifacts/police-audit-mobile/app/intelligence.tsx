@@ -91,6 +91,23 @@ interface LearnedPattern {
   reliability: string;
 }
 
+interface MonitorHealth {
+  status: "ok" | "warn" | "error";
+  db_ok: boolean;
+  analysis_pipeline_ok: boolean;
+  policies_count: number;
+  analyses_24h: number;
+  avg_confidence_24h: number | null;
+  confirmed_feedback_count: number;
+  new_patterns_learned: number;
+  auto_learned: boolean;
+  alerts: Array<{ level: "warn" | "error"; code: string; message: string; detail?: string }>;
+  notes: string | null;
+  checked_at: string;
+  age_seconds?: number;
+  source?: string;
+}
+
 const { width } = Dimensions.get("window");
 
 function StatCard({
@@ -196,10 +213,31 @@ export default function ShieldIntelligenceScreen() {
   const [patterns, setPatterns] = useState<LearnedPattern[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "policies" | "patterns">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "policies" | "patterns" | "monitor">("overview");
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [monitorHealth, setMonitorHealth] = useState<MonitorHealth | null>(null);
+  const [monitorLoading, setMonitorLoading] = useState(false);
+  const [runningCheck, setRunningCheck] = useState(false);
+
+  const loadMonitorHealth = useCallback(async (silent = false) => {
+    if (!silent) setMonitorLoading(true);
+    try {
+      const res = await fetch(`${API}/monitor/health`);
+      if (res.ok) setMonitorHealth(await res.json());
+    } catch {}
+    finally { setMonitorLoading(false); }
+  }, []);
+
+  const runManualCheck = useCallback(async () => {
+    setRunningCheck(true);
+    try {
+      const res = await fetch(`${API}/monitor/check`, { method: "POST" });
+      if (res.ok) setMonitorHealth(await res.json());
+    } catch {}
+    finally { setRunningCheck(false); }
+  }, []);
 
   const loadAll = useCallback(async () => {
     try {
@@ -225,7 +263,10 @@ export default function ShieldIntelligenceScreen() {
 
   useEffect(() => {
     loadAll();
-  }, [loadAll]);
+    loadMonitorHealth();
+    const interval = setInterval(() => loadMonitorHealth(true), 30_000);
+    return () => clearInterval(interval);
+  }, [loadAll, loadMonitorHealth]);
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -271,17 +312,23 @@ export default function ShieldIntelligenceScreen() {
       </View>
 
       <View style={styles.tabBar}>
-        {(["overview", "policies", "patterns"] as const).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.tab, activeTab === tab && styles.tabActive]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === "overview" ? "Overview" : tab === "policies" ? "Knowledge Base" : "Learned Patterns"}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {(["overview", "policies", "patterns", "monitor"] as const).map((tab) => {
+          const hasAlert = tab === "monitor" && monitorHealth && monitorHealth.status !== "ok";
+          return (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.tabActive]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                  {tab === "overview" ? "Overview" : tab === "policies" ? "Knowledge Base" : tab === "patterns" ? "Patterns" : "Monitor"}
+                </Text>
+                {hasAlert && <View style={styles.tabAlertDot} />}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <ScrollView
@@ -496,6 +543,216 @@ export default function ShieldIntelligenceScreen() {
           </>
         )}
 
+        {activeTab === "monitor" && (
+          <>
+            <View style={styles.monitorHero}>
+              <View style={[
+                styles.monitorStatusOrb,
+                {
+                  backgroundColor:
+                    !monitorHealth ? COLORS.subtle :
+                    monitorHealth.status === "ok" ? COLORS.greenDim :
+                    monitorHealth.status === "warn" ? COLORS.amberDim :
+                    COLORS.crimsonDim,
+                  borderColor:
+                    !monitorHealth ? COLORS.border :
+                    monitorHealth.status === "ok" ? COLORS.green :
+                    monitorHealth.status === "warn" ? COLORS.amber :
+                    COLORS.crimson,
+                },
+              ]}>
+                {monitorLoading || runningCheck ? (
+                  <ActivityIndicator size="small" color={COLORS.cyan} />
+                ) : (
+                  <Ionicons
+                    name={
+                      !monitorHealth ? "help-circle-outline" :
+                      monitorHealth.status === "ok" ? "checkmark-circle" :
+                      monitorHealth.status === "warn" ? "warning" :
+                      "alert-circle"
+                    }
+                    size={36}
+                    color={
+                      !monitorHealth ? COLORS.muted :
+                      monitorHealth.status === "ok" ? COLORS.green :
+                      monitorHealth.status === "warn" ? COLORS.amber :
+                      COLORS.crimson
+                    }
+                  />
+                )}
+              </View>
+              <Text style={styles.monitorStatusLabel}>
+                {!monitorHealth
+                  ? "Fetching status..."
+                  : monitorHealth.status === "ok"
+                  ? "All Systems Operational"
+                  : monitorHealth.status === "warn"
+                  ? "Attention Required"
+                  : "System Error Detected"}
+              </Text>
+              {monitorHealth && (
+                <Text style={styles.monitorCheckedAt}>
+                  Last check: {new Date(monitorHealth.checked_at).toLocaleTimeString()}
+                  {monitorHealth.age_seconds != null ? ` · ${monitorHealth.age_seconds}s ago` : ""}
+                </Text>
+              )}
+              <TouchableOpacity
+                style={[styles.monitorCheckBtn, runningCheck && { opacity: 0.6 }]}
+                onPress={runManualCheck}
+                disabled={runningCheck}
+              >
+                {runningCheck
+                  ? <ActivityIndicator size="small" color={COLORS.bg} />
+                  : <Ionicons name="refresh" size={15} color={COLORS.bg} />}
+                <Text style={styles.monitorCheckBtnText}>
+                  {runningCheck ? "Running Check..." : "Run Check Now"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <SectionHeader title="System Health" icon="pulse-outline" color={COLORS.green} />
+            <View style={styles.monitorGrid}>
+              {[
+                {
+                  label: "Database",
+                  ok: monitorHealth?.db_ok ?? null,
+                  icon: "server-outline",
+                },
+                {
+                  label: "AI Pipeline",
+                  ok: monitorHealth?.analysis_pipeline_ok ?? null,
+                  icon: "analytics-outline",
+                },
+              ].map((item) => (
+                <View key={item.label} style={[
+                  styles.monitorPill,
+                  {
+                    borderColor: item.ok === null ? COLORS.border : item.ok ? COLORS.green + "50" : COLORS.crimson + "50",
+                    backgroundColor: item.ok === null ? COLORS.subtle : item.ok ? COLORS.greenDim : COLORS.crimsonDim,
+                  },
+                ]}>
+                  <Ionicons name={item.icon as any} size={18} color={item.ok === null ? COLORS.muted : item.ok ? COLORS.green : COLORS.crimson} />
+                  <Text style={[styles.monitorPillLabel, { color: item.ok === null ? COLORS.muted : item.ok ? COLORS.green : COLORS.crimson }]}>
+                    {item.label}
+                  </Text>
+                  <Text style={[styles.monitorPillStatus, { color: item.ok === null ? COLORS.muted : item.ok ? COLORS.green : COLORS.crimson }]}>
+                    {item.ok === null ? "—" : item.ok ? "OK" : "ERROR"}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <SectionHeader title="24-Hour Performance" icon="bar-chart-outline" color={COLORS.cyan} />
+            <View style={styles.monitorMetrics}>
+              {[
+                {
+                  val: monitorHealth?.policies_count ?? "—",
+                  label: "Policies Loaded",
+                  color: COLORS.cyan,
+                  icon: "document-text-outline",
+                },
+                {
+                  val: monitorHealth?.analyses_24h ?? "—",
+                  label: "Analyses (24h)",
+                  color: COLORS.indigo,
+                  icon: "eye-outline",
+                },
+                {
+                  val: monitorHealth?.avg_confidence_24h != null
+                    ? `${Math.round(monitorHealth.avg_confidence_24h * 100)}%`
+                    : "—",
+                  label: "Avg Confidence",
+                  color: monitorHealth?.avg_confidence_24h != null && monitorHealth.avg_confidence_24h < 0.55 ? COLORS.amber : COLORS.green,
+                  icon: "speedometer-outline",
+                },
+                {
+                  val: monitorHealth?.confirmed_feedback_count ?? "—",
+                  label: "Confirmed Reports",
+                  color: COLORS.purple,
+                  icon: "thumbs-up-outline",
+                },
+              ].map((m, i) => (
+                <View key={i} style={[styles.monitorMetricCard, { borderColor: m.color + "30" }]}>
+                  <Ionicons name={m.icon as any} size={18} color={m.color} />
+                  <Text style={[styles.monitorMetricVal, { color: m.color }]}>{String(m.val)}</Text>
+                  <Text style={styles.monitorMetricLabel}>{m.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            {monitorHealth?.new_patterns_learned != null && monitorHealth.new_patterns_learned > 0 && (
+              <View style={styles.monitorLearnedBanner}>
+                <Ionicons name="trending-up" size={20} color={COLORS.purple} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.monitorLearnedTitle}>
+                    {monitorHealth.new_patterns_learned} New Pattern{monitorHealth.new_patterns_learned !== 1 ? "s" : ""} Auto-Learned
+                  </Text>
+                  <Text style={styles.monitorLearnedDesc}>
+                    {monitorHealth.notes ?? "Guardian feedback triggered an automatic learning cycle."}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {monitorHealth && monitorHealth.alerts.length > 0 && (
+              <>
+                <SectionHeader title="Active Alerts" icon="warning-outline" color={COLORS.amber} />
+                {monitorHealth.alerts.map((alert, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.monitorAlert,
+                      { borderColor: alert.level === "error" ? COLORS.crimson + "50" : COLORS.amber + "50",
+                        backgroundColor: alert.level === "error" ? COLORS.crimsonDim : COLORS.amberDim },
+                    ]}
+                  >
+                    <Ionicons
+                      name={alert.level === "error" ? "alert-circle" : "warning"}
+                      size={18}
+                      color={alert.level === "error" ? COLORS.crimson : COLORS.amber}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.monitorAlertTitle, { color: alert.level === "error" ? COLORS.crimson : COLORS.amber }]}>
+                        {alert.message}
+                      </Text>
+                      {alert.detail && (
+                        <Text style={styles.monitorAlertDetail}>{alert.detail}</Text>
+                      )}
+                      <Text style={styles.monitorAlertCode}>{alert.code}</Text>
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
+
+            {monitorHealth && monitorHealth.alerts.length === 0 && (
+              <View style={styles.monitorAllClear}>
+                <Ionicons name="shield-checkmark" size={32} color={COLORS.green} />
+                <Text style={styles.monitorAllClearTitle}>No Active Alerts</Text>
+                <Text style={styles.monitorAllClearDesc}>
+                  The Shield Intelligence Engine is running correctly. All systems are healthy and monitoring continuously.
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.monitorInfoCard}>
+              <Text style={styles.monitorInfoTitle}>What the Monitor Watches</Text>
+              {[
+                { icon: "server-outline", color: COLORS.cyan, text: "Database connectivity and schema integrity every 5 minutes" },
+                { icon: "analytics-outline", color: COLORS.indigo, text: "Analysis confidence trends — alerts when accuracy drops below 55%" },
+                { icon: "document-text-outline", color: COLORS.amber, text: "Policy coverage — warns if knowledge base falls below 20 policies" },
+                { icon: "trending-up-outline", color: COLORS.purple, text: "Auto-learns new violation patterns when 3+ Guardians confirm the same finding" },
+                { icon: "thumbs-down-outline", color: COLORS.crimson, text: "Dispute rate monitoring — alerts when Guardians reject 40%+ of findings" },
+              ].map((item, i) => (
+                <View key={i} style={styles.monitorInfoRow}>
+                  <Ionicons name={item.icon as any} size={14} color={item.color} />
+                  <Text style={styles.monitorInfoText}>{item.text}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
+
         <View style={{ height: 40 }} />
       </ScrollView>
 
@@ -643,4 +900,41 @@ const styles = StyleSheet.create({
   legalAuthorityBox: { backgroundColor: COLORS.amberDim, borderRadius: 10, padding: 12, marginTop: 14, gap: 4 },
   legalAuthorityLabel: { color: COLORS.amber, fontSize: 11, fontWeight: "700" },
   legalAuthorityText: { color: COLORS.text, fontSize: 12, lineHeight: 18 },
+
+  tabAlertDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.amber },
+
+  monitorHero: { alignItems: "center", gap: 8, paddingVertical: 20, backgroundColor: COLORS.card, borderRadius: 16, marginBottom: 4, borderWidth: 1, borderColor: COLORS.border },
+  monitorStatusOrb: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center", borderWidth: 2 },
+  monitorStatusLabel: { color: COLORS.text, fontSize: 17, fontWeight: "700" },
+  monitorCheckedAt: { color: COLORS.muted, fontSize: 11 },
+  monitorCheckBtn: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: COLORS.cyan, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 9, marginTop: 4 },
+  monitorCheckBtnText: { color: COLORS.bg, fontSize: 13, fontWeight: "700" },
+
+  monitorGrid: { flexDirection: "row", gap: 10 },
+  monitorPill: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderRadius: 12, padding: 14 },
+  monitorPillLabel: { flex: 1, fontSize: 13, fontWeight: "600" },
+  monitorPillStatus: { fontSize: 12, fontWeight: "700" },
+
+  monitorMetrics: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  monitorMetricCard: { flex: 1, minWidth: (width - 52) / 2, backgroundColor: COLORS.card, borderWidth: 1, borderRadius: 12, padding: 14, alignItems: "center", gap: 4 },
+  monitorMetricVal: { fontSize: 26, fontWeight: "800" },
+  monitorMetricLabel: { color: COLORS.muted, fontSize: 11, textAlign: "center" },
+
+  monitorLearnedBanner: { flexDirection: "row", alignItems: "flex-start", gap: 12, backgroundColor: COLORS.purpleDim, borderWidth: 1, borderColor: COLORS.purple + "50", borderRadius: 12, padding: 14 },
+  monitorLearnedTitle: { color: COLORS.purple, fontSize: 13, fontWeight: "700" },
+  monitorLearnedDesc: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginTop: 2 },
+
+  monitorAlert: { flexDirection: "row", alignItems: "flex-start", gap: 10, borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 6 },
+  monitorAlertTitle: { fontSize: 13, fontWeight: "600" },
+  monitorAlertDetail: { color: COLORS.muted, fontSize: 12, lineHeight: 17, marginTop: 2 },
+  monitorAlertCode: { color: COLORS.muted, fontSize: 10, marginTop: 4, letterSpacing: 0.3 },
+
+  monitorAllClear: { alignItems: "center", paddingVertical: 28, gap: 8 },
+  monitorAllClearTitle: { color: COLORS.green, fontSize: 16, fontWeight: "700" },
+  monitorAllClearDesc: { color: COLORS.muted, fontSize: 13, textAlign: "center", lineHeight: 19, paddingHorizontal: 16 },
+
+  monitorInfoCard: { backgroundColor: COLORS.card, borderRadius: 14, padding: 16, gap: 12 },
+  monitorInfoTitle: { color: COLORS.text, fontSize: 14, fontWeight: "700", marginBottom: 2 },
+  monitorInfoRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  monitorInfoText: { color: COLORS.muted, fontSize: 12, lineHeight: 18, flex: 1 },
 });

@@ -10,6 +10,7 @@ import integrityRouter from "./integrity";
 import immigrationRouter from "./immigration";
 import sosRouter from "./sos";
 import learnRouter from "./learn";
+import monitorRouter from "./monitor";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use("/departments", departmentsRouter);
 router.use(immigrationRouter);
 router.use("/sos", sosRouter);
 router.use("/learn", learnRouter);
+router.use("/monitor", monitorRouter);
 
 export default router;
