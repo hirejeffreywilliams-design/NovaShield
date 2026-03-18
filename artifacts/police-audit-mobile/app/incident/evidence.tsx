@@ -97,6 +97,17 @@ interface SceneAnalysis {
   evidence_summary?: string;
 }
 
+interface EvidenceIntegrity {
+  verification_status: string;
+  verification_note?: string | null;
+  manipulation_risk_score?: number | null;
+  image_hash?: string;
+  chain_hash?: string;
+  sequence_number?: number;
+  duplicate_risk?: boolean | null;
+  timestamp_plausible?: boolean | null;
+}
+
 interface EvidenceRecord {
   id: string;
   source?: string | null;
@@ -110,6 +121,7 @@ interface EvidenceRecord {
   officer_count?: number | null;
   vehicle_count?: number | null;
   confidence_score?: number | null;
+  integrity?: EvidenceIntegrity | null;
   captured_at: string;
 }
 
@@ -518,10 +530,30 @@ const sav = StyleSheet.create({
   sourceNoteText: { flex: 1, fontSize: 11, color: C.textMuted, fontFamily: "Inter_400Regular", lineHeight: 17 },
 });
 
+function IntegrityBadge({ status }: { status: string }) {
+  const map: Record<string, { icon: string; color: string; bg: string; label: string }> = {
+    verified:               { icon: "shield", color: "#22c55e", bg: "#22c55e18", label: "Verified" },
+    warning:                { icon: "alert-triangle", color: "#f59e0b", bg: "#f59e0b18", label: "Warning" },
+    manipulation_detected:  { icon: "x-circle", color: "#ef4444", bg: "#ef444418", label: "Tampered" },
+  };
+  const s = map[status] || map.verified;
+  return (
+    <View style={[intgBadge.badge, { backgroundColor: s.bg }]}>
+      <Feather name={s.icon as any} size={10} color={s.color} />
+      <Text style={[intgBadge.text, { color: s.color }]}>{s.label}</Text>
+    </View>
+  );
+}
+const intgBadge = StyleSheet.create({
+  badge: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6 },
+  text: { fontSize: 10, fontFamily: "Inter_600SemiBold", fontWeight: "600" as const },
+});
+
 function EvidenceCard({ item, index }: { item: EvidenceRecord; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const analysis = item.scene_analysis as SceneAnalysis | null | undefined;
   const hasStructured = !!analysis && !!(analysis.counts || analysis.persons);
+  const integrity = item.integrity;
 
   function formatCapture(dateStr: string) {
     return new Date(dateStr).toLocaleString("en-US", {
@@ -532,7 +564,7 @@ function EvidenceCard({ item, index }: { item: EvidenceRecord; index: number }) 
   return (
     <Animated.View entering={FadeInDown.delay(index * 60).duration(300)}>
       <Pressable
-        style={styles.evidenceCard}
+        style={[styles.evidenceCard, integrity?.verification_status === "manipulation_detected" && { borderColor: "#ef444455" }]}
         onPress={() => setExpanded(!expanded)}
       >
         <View style={styles.evidenceCardHeader}>
@@ -541,6 +573,9 @@ function EvidenceCard({ item, index }: { item: EvidenceRecord; index: number }) 
             <Text style={styles.evidenceSourceText}>{item.source === "camera" ? "Camera" : "Gallery"}</Text>
           </View>
           <Text style={styles.evidenceCaptureTime}>{formatCapture(item.captured_at)}</Text>
+          {integrity?.verification_status && (
+            <IntegrityBadge status={integrity.verification_status} />
+          )}
           {item.confidence_score != null && (
             <View style={[styles.confBadge, { backgroundColor: confidenceColor(item.confidence_score) + "22" }]}>
               <Text style={[styles.confBadgeText, { color: confidenceColor(item.confidence_score) }]}>
@@ -550,6 +585,12 @@ function EvidenceCard({ item, index }: { item: EvidenceRecord; index: number }) 
           )}
           <Feather name={expanded ? "chevron-up" : "chevron-down"} size={16} color={C.textMuted} />
         </View>
+        {integrity?.verification_note && (
+          <View style={styles.integrityNote}>
+            <Feather name="alert-triangle" size={12} color="#f59e0b" />
+            <Text style={styles.integrityNoteText} numberOfLines={2}>{integrity.verification_note}</Text>
+          </View>
+        )}
 
         <View style={styles.countMiniRow}>
           {item.person_count != null && (
@@ -792,4 +833,6 @@ const styles = StyleSheet.create({
   expandedSection: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: 14, gap: 16 },
   analysisLabel: { fontSize: 10, fontWeight: "600" as const, color: C.textMuted, fontFamily: "Inter_600SemiBold", letterSpacing: 1 },
   analysisText: { fontSize: 13, color: C.text, fontFamily: "Inter_400Regular", lineHeight: 20 },
+  integrityNote: { flexDirection: "row", gap: 7, alignItems: "flex-start", backgroundColor: "#f59e0b18", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },
+  integrityNoteText: { flex: 1, fontSize: 12, color: "#f59e0b", fontFamily: "Inter_400Regular", lineHeight: 17 },
 });

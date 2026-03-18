@@ -7,7 +7,9 @@ Full-stack civil rights accountability mobile app for recording and documenting 
 ## Key Features
 
 - **Auto-GPS capture** when recording starts (expo-location + reverse geocode to address)
-- **AI Photo Evidence** — photograph squad cars/badges, GPT vision extracts unit #, license plate, department, officer description
+- **AI Photo Evidence** — structured JSON analysis with per-person detection (role/badge/weapons/confidence), per-vehicle (unit#/plate/dept), per-object, scene conditions, and per-category confidence scores
+- **AI Manipulation Detection** — every photo analyzed for editing artifacts, AI-generation tells, lighting inconsistencies, compression anomalies (manipulation_risk_score 0–1)
+- **Evidence Integrity System** — blockchain-style SHA-256 hash chain: each photo hashed at capture, chained to previous evidence; tamper-evident audit log with hash chaining; timestamp plausibility checks; duplicate detection; cryptographic integrity certificates
 - **Constitutional Rights Tagging** — every event maps to an Amendment (1st, 4th, 5th, 8th, 14th)
 - **Evidence Timeline** — chronological events with wall-clock timestamps
 - **Officer lookup** by badge number, pattern flagging when same officer appears in multiple incidents

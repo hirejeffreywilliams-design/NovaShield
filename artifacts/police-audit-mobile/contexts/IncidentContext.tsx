@@ -53,6 +53,18 @@ export interface Report {
   created_at: string;
 }
 
+export interface EvidenceIntegrityRecord {
+  evidence_photo_id: string;
+  verification_status: string;
+  verification_note: string | null;
+  manipulation_risk_score: number | null;
+  image_hash: string;
+  chain_hash: string;
+  sequence_number: number;
+  duplicate_risk: boolean | null;
+  timestamp_plausible: boolean | null;
+}
+
 export interface EvidencePhoto {
   id: string;
   incident_id: string;
@@ -67,6 +79,7 @@ export interface EvidencePhoto {
   officer_count?: number | null;
   vehicle_count?: number | null;
   confidence_score?: number | null;
+  integrity?: EvidenceIntegrityRecord | null;
   captured_at: string;
 }
 
@@ -224,6 +237,18 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
       photo_id: string;
       evidence_summary?: string;
       scene_analysis?: any;
+      integrity?: {
+        image_hash: string;
+        chain_hash: string;
+        sequence_number: number;
+        verification_status: string;
+        verification_notes: string[];
+        manipulation_risk: number;
+        manipulation_assessment?: string;
+        manipulation_flags?: string[];
+        timestamp_plausible: boolean;
+        duplicate_risk: boolean;
+      };
       counts?: {
         persons?: number;
         law_enforcement?: number;
@@ -257,6 +282,17 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
       officer_count: result.counts?.law_enforcement ?? null,
       vehicle_count: result.counts?.vehicles ?? null,
       confidence_score: result.confidence?.overall ?? null,
+      integrity: result.integrity ? {
+        evidence_photo_id: result.photo_id,
+        verification_status: result.integrity.verification_status,
+        verification_note: result.integrity.verification_notes?.join("; ") || null,
+        manipulation_risk_score: result.integrity.manipulation_risk,
+        image_hash: result.integrity.image_hash,
+        chain_hash: result.integrity.chain_hash,
+        sequence_number: result.integrity.sequence_number,
+        duplicate_risk: result.integrity.duplicate_risk,
+        timestamp_plausible: result.integrity.timestamp_plausible,
+      } : null,
       captured_at: new Date().toISOString(),
     };
   }, []);

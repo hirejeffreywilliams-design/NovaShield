@@ -1,21 +1,43 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { evidencePhotosTable } from "@workspace/db/schema";
+import { evidencePhotosTable, evidenceIntegrityTable } from "@workspace/db/schema";
 import { eq } from "drizzle-orm";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import {
+  computeImageHash,
+  computeMetadataHash,
+  computeChainHash,
+  getLastChainHash,
+  getLastAuditHash,
+  writeAuditLog,
+  checkTimestampPlausibility,
+  checkDuplicateRisk,
+  computeAuditEntryHash,
+  sha256,
+} from "../lib/integrity";
 
 const router: IRouter = Router();
 
-const STRUCTURED_ANALYSIS_PROMPT = `You are an expert forensic scene analyst specializing in law enforcement encounter documentation for civil rights accountability. Your task is to produce a highly accurate, structured JSON analysis of this image.
+const STRUCTURED_ANALYSIS_PROMPT = `You are an expert forensic scene analyst and digital forensics specialist for civil rights accountability documentation. Produce a highly accurate, structured JSON analysis of this image.
 
-ACCURACY IS PARAMOUNT. You must:
-- Count every visible human being individually and carefully
-- Distinguish clearly between law enforcement and civilians based on visible evidence ONLY (uniform, badge, vehicle markings, equipment)
-- Report confidence scores honestly — if visibility is poor, your confidence MUST be lower
-- Never infer what you cannot see — mark uncertain items with lower confidence and explain why
-- Actively flag potential false reading risks (e.g., partially visible people, blurry areas, obstructions)
+ACCURACY IS PARAMOUNT:
+- Count every visible human individually and carefully
+- Distinguish law enforcement from civilians based ONLY on visible evidence (uniform, badge, vehicle markings)
+- Report confidence scores honestly — poor visibility means lower confidence
+- Never infer what you cannot directly see
+- Actively flag potential false reading risks
 
-Return ONLY valid JSON matching this exact schema. No markdown, no text outside the JSON:
+MANIPULATION DETECTION:
+You must also analyze whether this image shows signs of digital manipulation or AI generation. Check for:
+- Cloning/copy-paste artifacts, repeating texture patterns
+- Inconsistent lighting or shadows between objects/people
+- Unnatural edges, halos, or blending artifacts
+- AI generation tells: unnaturally smooth skin, odd fingers/hands, impossible geometry
+- JPEG/compression artifacts inconsistent with claimed quality
+- Metadata inconsistencies visible within the image (e.g., watermarks from different dates)
+- Missing natural camera noise or motion blur that should be present given the scene
+
+Return ONLY valid JSON with this exact schema. No markdown, no text outside the JSON:
 
 {
   "persons": [
@@ -26,7 +48,7 @@ Return ONLY valid JSON matching this exact schema. No markdown, no text outside 
       "clothing": "detailed clothing description",
       "visible_badge_number": "exact text if visible, or null",
       "visible_name_tag": "exact text if visible, or null",
-      "apparent_rank": "if discernible from insignia, or null",
+      "apparent_rank": "if discernible, or null",
       "position": "standing | seated | prone | moving | crouching | other",
       "action": "what this person is doing",
       "is_armed": true,
@@ -39,13 +61,13 @@ Return ONLY valid JSON matching this exact schema. No markdown, no text outside 
     {
       "vehicle_id": 1,
       "type": "police_cruiser | unmarked_police | suv | motorcycle | van | civilian | other",
-      "unit_number": "exact text visible on vehicle, or null",
+      "unit_number": "exact text visible, or null",
       "license_plate": "exact plate text if readable, or null",
-      "department_markings": "full text of any department name/logo visible, or null",
+      "department_markings": "full text of department name/logo, or null",
       "color": "color description",
       "make_model": "if identifiable, or null",
       "confidence": 0.90,
-      "confidence_notes": "why this confidence level"
+      "confidence_notes": "reason for this confidence level"
     }
   ],
   "objects_of_interest": [
@@ -62,8 +84,8 @@ Return ONLY valid JSON matching this exact schema. No markdown, no text outside 
     "lighting_conditions": "daylight_bright | daylight_overcast | dusk_dawn | artificial_good | artificial_poor | nighttime_poor",
     "camera_angle": "description of angle and distance",
     "image_quality": "clear | partially_obstructed | blurry | low_resolution | multiple_issues",
-    "obstructions": ["list any obstructions affecting visibility"],
-    "visible_landmarks": ["street signs, building numbers, or other identifying features"],
+    "obstructions": ["obstructions affecting visibility"],
+    "visible_landmarks": ["street signs, building numbers, identifiers"],
     "time_of_day_estimate": "estimate based on lighting, or null"
   },
   "counts": {
@@ -80,13 +102,24 @@ Return ONLY valid JSON matching this exact schema. No markdown, no text outside 
     "person_count_confidence": 0.95,
     "vehicle_count_confidence": 0.90,
     "id_extraction_confidence": 0.75,
-    "factors_reducing_confidence": ["list specific factors like blur, angle, distance, obstruction"],
-    "factors_increasing_confidence": ["list specific factors like good lighting, clear markings, close range"]
+    "factors_reducing_confidence": ["specific factors: blur, angle, distance, obstruction"],
+    "factors_increasing_confidence": ["specific factors: lighting, clear markings, close range"]
+  },
+  "manipulation_assessment": {
+    "risk_score": 0.05,
+    "is_likely_manipulated": false,
+    "is_likely_ai_generated": false,
+    "indicators": ["list any detected manipulation artifacts — empty array if none"],
+    "ai_generation_artifacts": ["list any AI generation tells — empty array if none"],
+    "lighting_consistency": "consistent | minor_inconsistencies | major_inconsistencies",
+    "compression_artifacts": "normal | suspicious | heavy_re_encoding",
+    "confidence": 0.90,
+    "assessment": "2-3 sentence plain language assessment of image authenticity"
   },
   "potential_concerns": [
     {
       "type": "excessive_force | unreasonable_search | disproportionate_response | constitutional_concern | use_of_force | other",
-      "description": "specific observable description — only what is VISIBLE, no assumptions",
+      "description": "specific observable description — only what is VISIBLE",
       "severity": "low | medium | high",
       "applicable_amendment": "1st | 4th | 5th | 8th | 14th | null"
     }
@@ -94,17 +127,39 @@ Return ONLY valid JSON matching this exact schema. No markdown, no text outside 
   "false_reading_risks": [
     "specific risks that could cause misidentification in this image"
   ],
-  "evidence_summary": "2-3 sentence plain-language summary of what this image documents, suitable for an official report"
+  "evidence_summary": "2-3 sentence plain-language summary suitable for an official report"
 }`;
 
 router.post("/:id/analyze-image", async (req, res) => {
   try {
-    const { image_base64, source = "camera" } = req.body;
+    const { image_base64, source = "camera", gps_lat, gps_lon } = req.body;
     if (!image_base64) {
       return res.status(400).json({ error: "image_base64 is required" });
     }
 
-    const response = await openai.chat.completions.create({
+    const captureTimestamp = new Date();
+
+    const imageHash = computeImageHash(image_base64);
+    const metadataHash = computeMetadataHash({
+      incident_id: req.params.id,
+      source,
+      capture_timestamp: captureTimestamp.toISOString(),
+      gps_lat: gps_lat ?? null,
+      gps_lon: gps_lon ?? null,
+    });
+
+    const { hash: prevChainHash, sequence: seqNumber } = await getLastChainHash(req.params.id);
+    const chainHash = computeChainHash({
+      image_hash: imageHash,
+      metadata_hash: metadataHash,
+      previous_chain_hash: prevChainHash,
+      sequence_number: seqNumber,
+    });
+
+    const timestampCheck = checkTimestampPlausibility(captureTimestamp);
+    const isDuplicate = await checkDuplicateRisk(req.params.id, imageHash);
+
+    const aiResponse = await openai.chat.completions.create({
       model: "gpt-5.2",
       max_completion_tokens: 8192,
       response_format: { type: "json_object" },
@@ -125,9 +180,8 @@ router.post("/:id/analyze-image", async (req, res) => {
       ],
     });
 
-    const rawContent = response.choices[0]?.message?.content || "{}";
+    const rawContent = aiResponse.choices[0]?.message?.content || "{}";
     let sceneAnalysis: any = {};
-
     try {
       sceneAnalysis = JSON.parse(rawContent);
     } catch {
@@ -135,12 +189,32 @@ router.post("/:id/analyze-image", async (req, res) => {
     }
 
     const counts = sceneAnalysis.counts || {};
+    const manipulation = sceneAnalysis.manipulation_assessment || {};
     const firstVehicle = sceneAnalysis.vehicles?.[0] || {};
     const lawEnforcementPersons = (sceneAnalysis.persons || []).filter((p: any) => p.role === "law_enforcement");
     const firstOfficer = lawEnforcementPersons[0] || {};
     const overallConfidence = sceneAnalysis.analysis_confidence?.overall_score ?? null;
+    const manipulationRisk = manipulation.risk_score ?? 0;
 
-    const legacySummary = sceneAnalysis.evidence_summary || "";
+    let verificationStatus = "verified";
+    const verificationNotes: string[] = [];
+
+    if (!timestampCheck.plausible && timestampCheck.note) {
+      verificationStatus = "warning";
+      verificationNotes.push(timestampCheck.note);
+    }
+    if (isDuplicate) {
+      verificationStatus = "warning";
+      verificationNotes.push("Duplicate image submitted — hash matches existing evidence");
+    }
+    if (manipulation.is_likely_manipulated) {
+      verificationStatus = "manipulation_detected";
+      verificationNotes.push(`AI detected manipulation (risk: ${Math.round(manipulationRisk * 100)}%): ${manipulation.assessment}`);
+    }
+    if (manipulation.is_likely_ai_generated) {
+      verificationStatus = "manipulation_detected";
+      verificationNotes.push("AI detected this image may be AI-generated or synthetic");
+    }
 
     const [photo] = await db
       .insert(evidencePhotosTable)
@@ -148,11 +222,11 @@ router.post("/:id/analyze-image", async (req, res) => {
         incident_id: req.params.id,
         image_base64,
         source,
-        ai_analysis: legacySummary,
+        ai_analysis: sceneAnalysis.evidence_summary || "",
         vehicle_unit: firstVehicle.unit_number || null,
         license_plate: firstVehicle.license_plate || null,
         officer_description: firstOfficer.description || null,
-        department_markings: firstVehicle.department_markings || firstOfficer.apparent_rank || null,
+        department_markings: firstVehicle.department_markings || null,
         additional_findings: (sceneAnalysis.false_reading_risks || []).join("; ") || null,
         scene_analysis: sceneAnalysis,
         person_count: counts.total_persons ?? null,
@@ -162,9 +236,68 @@ router.post("/:id/analyze-image", async (req, res) => {
       })
       .returning();
 
+    const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket?.remoteAddress || null;
+    const userAgent = (req.headers["user-agent"] as string) || null;
+
+    await db.insert(evidenceIntegrityTable).values({
+      evidence_photo_id: photo.id,
+      incident_id: req.params.id,
+      image_hash: imageHash,
+      metadata_hash: metadataHash,
+      chain_hash: chainHash,
+      previous_chain_hash: prevChainHash,
+      sequence_number: seqNumber,
+      capture_timestamp: captureTimestamp,
+      gps_lat: gps_lat ?? null,
+      gps_lon: gps_lon ?? null,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      manipulation_risk_score: manipulationRisk,
+      manipulation_flags: manipulation.indicators?.length
+        ? { indicators: manipulation.indicators, ai_artifacts: manipulation.ai_generation_artifacts || [] }
+        : null,
+      ai_manipulation_assessment: manipulation.assessment || null,
+      gps_plausible: true,
+      timestamp_plausible: timestampCheck.plausible,
+      duplicate_risk: isDuplicate,
+      verification_status: verificationStatus,
+      verification_note: verificationNotes.length > 0 ? verificationNotes.join("; ") : null,
+      last_verified_at: new Date(),
+    });
+
+    await writeAuditLog({
+      incident_id: req.params.id,
+      evidence_photo_id: photo.id,
+      action: "evidence_captured",
+      actor: "user",
+      details: {
+        source,
+        image_hash: imageHash,
+        chain_hash: chainHash,
+        sequence_number: seqNumber,
+        manipulation_risk: manipulationRisk,
+        verification_status: verificationStatus,
+        person_count: counts.total_persons,
+        officer_count: counts.total_law_enforcement,
+        vehicle_count: counts.total_vehicles,
+      },
+    });
+
     res.json({
       photo_id: photo.id,
       scene_analysis: sceneAnalysis,
+      integrity: {
+        image_hash: imageHash,
+        chain_hash: chainHash,
+        sequence_number: seqNumber,
+        verification_status: verificationStatus,
+        verification_notes: verificationNotes,
+        manipulation_risk: manipulationRisk,
+        manipulation_assessment: manipulation.assessment,
+        manipulation_flags: manipulation.indicators || [],
+        timestamp_plausible: timestampCheck.plausible,
+        duplicate_risk: isDuplicate,
+      },
       counts: {
         persons: counts.total_persons ?? 0,
         law_enforcement: counts.total_law_enforcement ?? 0,
@@ -218,7 +351,35 @@ router.get("/:id/evidence", async (req, res) => {
       .from(evidencePhotosTable)
       .where(eq(evidencePhotosTable.incident_id, req.params.id))
       .orderBy(evidencePhotosTable.captured_at);
-    res.json({ evidence: photos });
+
+    const integrityMap: Record<string, any> = {};
+    if (photos.length > 0) {
+      const intRows = await db
+        .select({
+          evidence_photo_id: evidenceIntegrityTable.evidence_photo_id,
+          verification_status: evidenceIntegrityTable.verification_status,
+          verification_note: evidenceIntegrityTable.verification_note,
+          manipulation_risk_score: evidenceIntegrityTable.manipulation_risk_score,
+          image_hash: evidenceIntegrityTable.image_hash,
+          chain_hash: evidenceIntegrityTable.chain_hash,
+          sequence_number: evidenceIntegrityTable.sequence_number,
+          duplicate_risk: evidenceIntegrityTable.duplicate_risk,
+          timestamp_plausible: evidenceIntegrityTable.timestamp_plausible,
+        })
+        .from(evidenceIntegrityTable)
+        .where(eq(evidenceIntegrityTable.incident_id, req.params.id));
+
+      for (const r of intRows) {
+        integrityMap[r.evidence_photo_id] = r;
+      }
+    }
+
+    const evidence = photos.map((p) => ({
+      ...p,
+      integrity: integrityMap[p.id] || null,
+    }));
+
+    res.json({ evidence });
   } catch (err) {
     res.status(500).json({ error: "Failed to get evidence", message: String(err) });
   }

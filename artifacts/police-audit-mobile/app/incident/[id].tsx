@@ -246,6 +246,22 @@ export default function IncidentDetailScreen() {
           <Feather name="chevron-right" size={18} color={C.textMuted} />
         </Pressable>
 
+        <Pressable
+          style={({ pressed }) => [styles.evidenceBtn, { opacity: pressed ? 0.8 : 1, borderColor: "#22c55e55" }]}
+          onPress={() => router.push({ pathname: "/incident/integrity", params: { id: id! } })}
+        >
+          <View style={styles.evidenceBtnLeft}>
+            <View style={[styles.evidenceBtnIcon, { backgroundColor: "#22c55e22" }]}>
+              <Feather name="shield" size={18} color="#22c55e" />
+            </View>
+            <View>
+              <Text style={styles.evidenceBtnTitle}>Evidence Integrity</Text>
+              <Text style={styles.evidenceBtnSub}>Chain of custody · Tamper detection · Fraud analysis</Text>
+            </View>
+          </View>
+          <Feather name="chevron-right" size={18} color={C.textMuted} />
+        </Pressable>
+
         <View style={styles.card}>
           <View style={styles.eventsHeader}>
             <Text style={styles.cardLabel}>INCIDENT TIMELINE</Text>
