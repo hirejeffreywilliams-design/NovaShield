@@ -152,7 +152,7 @@ export default function IncidentsScreen() {
     <View style={[styles.container, { paddingTop: topPad }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>CivilShield</Text>
+          <Text style={styles.headerTitle}>NovaShield</Text>
           <Text style={styles.headerSub}>The Shield is yours · {incidents.length} Shield Report{incidents.length !== 1 ? "s" : ""} filed</Text>
         </View>
         <Pressable

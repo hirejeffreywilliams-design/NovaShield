@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "CivilShield",
+    "name": "NovaShield",
     "slug": "police-audit-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "civilshield",
+    "scheme": "novashield",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -16,10 +16,10 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "CivilShield needs camera access to record video evidence of police encounters for your civil rights documentation.",
-        "NSMicrophoneUsageDescription": "CivilShield needs microphone access to capture audio in video evidence recordings.",
-        "NSPhotoLibraryUsageDescription": "CivilShield needs photo library access to save video evidence to your device.",
-        "NSPhotoLibraryAddUsageDescription": "CivilShield needs permission to save video evidence to your photo library."
+        "NSCameraUsageDescription": "NovaShield needs camera access to record video evidence of police encounters for your civil rights documentation.",
+        "NSMicrophoneUsageDescription": "NovaShield needs microphone access to capture audio in video evidence recordings.",
+        "NSPhotoLibraryUsageDescription": "NovaShield needs photo library access to save video evidence to your device.",
+        "NSPhotoLibraryAddUsageDescription": "NovaShield needs permission to save video evidence to your photo library."
       }
     },
     "android": {
@@ -47,16 +47,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "CivilShield needs camera access to record video evidence of police encounters.",
-          "microphonePermission": "CivilShield needs microphone access to capture audio in video evidence recordings.",
+          "cameraPermission": "NovaShield needs camera access to record video evidence of police encounters.",
+          "microphonePermission": "NovaShield needs microphone access to capture audio in video evidence recordings.",
           "recordAudioAndroid": true
         }
       ],
       [
         "expo-media-library",
         {
-          "photosPermission": "CivilShield needs photo library access to save your video evidence.",
-          "savePhotosPermission": "CivilShield needs permission to save video evidence to your photo library.",
+          "photosPermission": "NovaShield needs photo library access to save your video evidence.",
+          "savePhotosPermission": "NovaShield needs permission to save video evidence to your photo library.",
           "isAccessMediaLocationEnabled": true
         }
       ]

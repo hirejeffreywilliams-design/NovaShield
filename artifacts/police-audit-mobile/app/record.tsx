@@ -192,7 +192,7 @@ export default function RecordScreen() {
         <Ionicons name="videocam-off-outline" size={56} color={CRIMSON} />
         <Text style={styles.permissionTitle}>Camera & Microphone Access Required</Text>
         <Text style={styles.permissionSubtext}>
-          CivilShield needs your camera and microphone to record video evidence. This is essential for documenting encounters.
+          NovaShield needs your camera and microphone to record video evidence. This is essential for documenting encounters.
         </Text>
         <TouchableOpacity style={styles.grantBtn} onPress={requestAllPermissions}>
           <Ionicons name="shield-checkmark" size={18} color={BG} />
