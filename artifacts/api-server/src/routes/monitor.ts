@@ -11,7 +11,7 @@ import { runMonitorCycle, getLatestHealthCheck, getHealthHistory } from "../lib/
 
 const router: IRouter = Router();
 
-router.get("/health", async (req, res) => {
+router.get("/health", async (req, res): Promise<void> => {
   try {
     const latest = await getLatestHealthCheck();
     const staleMs = latest ? Date.now() - new Date(latest.checked_at).getTime() : Infinity;
@@ -19,19 +19,21 @@ router.get("/health", async (req, res) => {
 
     if (!latest || isStale) {
       const fresh = await runMonitorCycle();
-      return res.json({
+      res.json({
         ...fresh,
         source: "live",
         next_check_in_seconds: 300,
       });
+      return;
     }
 
-    return res.json({
+    res.json({
       ...latest,
       source: "cached",
       age_seconds: Math.floor(staleMs / 1000),
       next_check_in_seconds: Math.max(0, 300 - Math.floor(staleMs / 1000)),
     });
+    return;
   } catch (err) {
     res.status(500).json({ error: "Health check failed", message: String(err) });
   }

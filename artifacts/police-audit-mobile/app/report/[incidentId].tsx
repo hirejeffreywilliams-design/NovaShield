@@ -77,7 +77,7 @@ export default function ReportDetailScreen() {
           </Pressable>
         </View>
         <View style={styles.center}>
-          <Feather name="file-x" size={48} color={C.border} />
+          <Feather name="file-minus" size={48} color={C.border} />
           <Text style={styles.notFoundTitle}>Report Not Found</Text>
           <Text style={styles.notFoundText}>Generate a report from the incident detail screen</Text>
         </View>

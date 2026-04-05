@@ -14,12 +14,13 @@ router.get("/", async (_req, res) => {
   }
 });
 
-router.post("/resolve", async (req, res) => {
+router.post("/resolve", async (req, res): Promise<void> => {
   try {
     const { badge_number, badge_text } = req.body;
     const badge = badge_number || badge_text;
     if (!badge) {
-      return res.json({ found: false, badge_number: badge || "", officer: null });
+      res.json({ found: false, badge_number: badge || "", officer: null });
+      return;
     }
     const [officer] = await db
       .select()
@@ -44,13 +45,13 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res): Promise<void> => {
   try {
     const [officer] = await db
       .select()
       .from(officersTable)
       .where(eq(officersTable.id, req.params.id));
-    if (!officer) return res.status(404).json({ error: "Officer not found" });
+    if (!officer) { res.status(404).json({ error: "Officer not found" }); return; }
     res.json(officer);
   } catch (err) {
     res.status(500).json({ error: "Failed to get officer", message: String(err) });
@@ -70,11 +71,12 @@ router.get("/:id/disciplinary", async (req, res) => {
   }
 });
 
-router.post("/:id/disciplinary", async (req, res) => {
+router.post("/:id/disciplinary", async (req, res): Promise<void> => {
   try {
     const { type, title, description, incident_date, source_name, source_url, outcome } = req.body;
     if (!type || !title || !source_name) {
-      return res.status(400).json({ error: "type, title, and source_name are required" });
+      res.status(400).json({ error: "type, title, and source_name are required" });
+      return;
     }
     const [record] = await db
       .insert(disciplinaryRecordsTable)

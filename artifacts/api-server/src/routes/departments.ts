@@ -156,14 +156,15 @@ function parseOsmElement(el: any, userLat: number, userLng: number) {
   };
 }
 
-router.get("/nearby", async (req, res) => {
+router.get("/nearby", async (req, res): Promise<void> => {
   try {
     const lat = parseFloat(req.query.lat as string);
     const lng = parseFloat(req.query.lng as string);
     const radius = parseInt(req.query.radius as string) || 8000;
 
     if (isNaN(lat) || isNaN(lng)) {
-      return res.status(400).json({ error: "lat and lng are required" });
+      res.status(400).json({ error: "lat and lng are required" });
+      return;
     }
 
     const elements = await queryOverpass(lat, lng, radius);
@@ -187,14 +188,15 @@ router.get("/nearby", async (req, res) => {
   }
 });
 
-router.get("/post-board", async (req, res) => {
+router.get("/post-board", async (req, res): Promise<void> => {
   try {
     const { state } = req.query as { state?: string };
     if (!state) {
-      return res.json({ boards: Object.values(POST_BOARDS) });
+      res.json({ boards: Object.values(POST_BOARDS) });
+      return;
     }
     const board = POST_BOARDS[state.toUpperCase()];
-    if (!board) return res.status(404).json({ error: "State not found" });
+    if (!board) { res.status(404).json({ error: "State not found" }); return; }
     res.json({ board });
   } catch (err) {
     res.status(500).json({ error: "Failed to get POST board info", message: String(err) });
@@ -217,10 +219,10 @@ router.get("/accountability", async (req, res) => {
   }
 });
 
-router.post("/foia-request", async (req, res) => {
+router.post("/foia-request", async (req, res): Promise<void> => {
   try {
     const { department_name, officer_badge, officer_name, incident_date, state } = req.body;
-    if (!department_name) return res.status(400).json({ error: "department_name is required" });
+    if (!department_name) { res.status(400).json({ error: "department_name is required" }); return; }
 
     const prompt = `Generate a proper FOIA (Freedom of Information Act) or state open records law request letter for police records. Use formal legal language. Make it comprehensive but concise.
 

@@ -14,11 +14,12 @@ router.get("/contacts", async (_req, res) => {
   }
 });
 
-router.post("/contacts", async (req, res) => {
+router.post("/contacts", async (req, res): Promise<void> => {
   try {
     const { name, phone, email, relationship, notify_on_sos } = req.body;
     if (!name || !phone) {
-      return res.status(400).json({ error: "name and phone are required" });
+      res.status(400).json({ error: "name and phone are required" });
+      return;
     }
     const [contact] = await db
       .insert(trustedContactsTable)
@@ -30,7 +31,7 @@ router.post("/contacts", async (req, res) => {
   }
 });
 
-router.put("/contacts/:id", async (req, res) => {
+router.put("/contacts/:id", async (req, res): Promise<void> => {
   try {
     const { id } = req.params;
     const { name, phone, email, relationship, notify_on_sos } = req.body;
@@ -39,7 +40,7 @@ router.put("/contacts/:id", async (req, res) => {
       .set({ name, phone, email, relationship, notify_on_sos })
       .where(eq(trustedContactsTable.id, id))
       .returning();
-    if (!contact) return res.status(404).json({ error: "Contact not found" });
+    if (!contact) { res.status(404).json({ error: "Contact not found" }); return; }
     res.json(contact);
   } catch (err) {
     res.status(500).json({ error: "Failed to update contact", message: String(err) });
@@ -95,7 +96,7 @@ router.post("/trigger", async (req, res) => {
   }
 });
 
-router.put("/:id/status", async (req, res) => {
+router.put("/:id/status", async (req, res): Promise<void> => {
   try {
     const { id } = req.params;
     const { status, contacts_notified } = req.body;
@@ -107,7 +108,7 @@ router.put("/:id/status", async (req, res) => {
       .set(updates as any)
       .where(eq(sosEventsTable.id, id))
       .returning();
-    if (!event) return res.status(404).json({ error: "SOS event not found" });
+    if (!event) { res.status(404).json({ error: "SOS event not found" }); return; }
     res.json(event);
   } catch (err) {
     res.status(500).json({ error: "Failed to update SOS status", message: String(err) });

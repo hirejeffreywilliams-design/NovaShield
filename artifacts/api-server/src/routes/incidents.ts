@@ -17,11 +17,12 @@ router.get("/", async (_req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res): Promise<void> => {
   try {
     const { title, description, location, latitude, longitude, officer_badge, officer_name, duration_seconds, notes } = req.body;
     if (!title) {
-      return res.status(400).json({ error: "title is required" });
+      res.status(400).json({ error: "title is required" });
+      return;
     }
     const [incident] = await db
       .insert(incidentsTable)
@@ -33,20 +34,20 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res): Promise<void> => {
   try {
     const [incident] = await db
       .select()
       .from(incidentsTable)
       .where(eq(incidentsTable.id, req.params.id));
-    if (!incident) return res.status(404).json({ error: "Incident not found" });
+    if (!incident) { res.status(404).json({ error: "Incident not found" }); return; }
     res.json(incident);
   } catch (err) {
     res.status(500).json({ error: "Failed to get incident", message: String(err) });
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req, res): Promise<void> => {
   try {
     const { title, description, location, latitude, longitude, status, officer_badge, officer_name, duration_seconds, notes } = req.body;
     const [updated] = await db
@@ -54,20 +55,20 @@ router.put("/:id", async (req, res) => {
       .set({ title, description, location, latitude, longitude, status, officer_badge, officer_name, duration_seconds, notes, updated_at: new Date() })
       .where(eq(incidentsTable.id, req.params.id))
       .returning();
-    if (!updated) return res.status(404).json({ error: "Incident not found" });
+    if (!updated) { res.status(404).json({ error: "Incident not found" }); return; }
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: "Failed to update incident", message: String(err) });
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req, res): Promise<void> => {
   try {
     const [deleted] = await db
       .delete(incidentsTable)
       .where(eq(incidentsTable.id, req.params.id))
       .returning();
-    if (!deleted) return res.status(404).json({ error: "Incident not found" });
+    if (!deleted) { res.status(404).json({ error: "Incident not found" }); return; }
     res.json({ message: "Incident deleted" });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete incident", message: String(err) });
@@ -87,10 +88,10 @@ router.get("/:id/events", async (req, res) => {
   }
 });
 
-router.post("/:id/events", async (req, res) => {
+router.post("/:id/events", async (req, res): Promise<void> => {
   try {
     const { type, description, timestamp_seconds, confidence, wall_clock_time, rights_violated } = req.body;
-    if (!type) return res.status(400).json({ error: "type is required" });
+    if (!type) { res.status(400).json({ error: "type is required" }); return; }
     const [event] = await db
       .insert(eventsTable)
       .values({

@@ -501,7 +501,7 @@ export default function OfficerDetailScreen() {
                     style={s.incidentRow}
                     onPress={() => router.push({ pathname: "/incident/[id]", params: { id: inc.id } })}
                   >
-                    <View style={[s.incidentDot, { backgroundColor: inc.status === "pending" ? AMBER : inc.status === "resolved" ? GREEN : BLUE }]} />
+                    <View style={[s.incidentDot, { backgroundColor: inc.status === "pending" ? AMBER : (inc.status as string) === "resolved" ? GREEN : BLUE }]} />
                     <View style={{ flex: 1, gap: 2 }}>
                       <Text style={s.incidentTitle}>{inc.title}</Text>
                       <Text style={s.incidentMeta}>{new Date(inc.created_at).toLocaleDateString()} · {inc.location || "No location"}</Text>

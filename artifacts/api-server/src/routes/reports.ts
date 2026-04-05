@@ -14,11 +14,11 @@ router.get("/", async (_req, res) => {
   }
 });
 
-router.post("/:incidentId", async (req, res) => {
+router.post("/:incidentId", async (req, res): Promise<void> => {
   try {
     const { incidentId } = req.params;
     const [incident] = await db.select().from(incidentsTable).where(eq(incidentsTable.id, incidentId));
-    if (!incident) return res.status(404).json({ error: "Incident not found" });
+    if (!incident) { res.status(404).json({ error: "Incident not found" }); return; }
 
     const findings: string[] = [];
     const recommendations: string[] = [];
@@ -65,10 +65,10 @@ router.post("/:incidentId", async (req, res) => {
   }
 });
 
-router.get("/:incidentId", async (req, res) => {
+router.get("/:incidentId", async (req, res): Promise<void> => {
   try {
     const [report] = await db.select().from(reportsTable).where(eq(reportsTable.incident_id, req.params.incidentId));
-    if (!report) return res.status(404).json({ error: "Report not found" });
+    if (!report) { res.status(404).json({ error: "Report not found" }); return; }
     res.json(report);
   } catch (err) {
     res.status(500).json({ error: "Failed to get report", message: String(err) });

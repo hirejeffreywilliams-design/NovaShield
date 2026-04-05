@@ -35,11 +35,12 @@ CRITICAL RULES:
 
 6. This is for safety — people's lives and liberty are at stake. Be accurate, clear, and actionable.`;
 
-router.post("/immigration/question", async (req, res) => {
+router.post("/immigration/question", async (req, res): Promise<void> => {
   try {
     const { question, state, context } = req.body;
     if (!question || typeof question !== "string") {
-      return res.status(400).json({ error: "question is required" });
+      res.status(400).json({ error: "question is required" });
+      return;
     }
 
     const contextNote = state ? `The user is in ${state}.` : "";

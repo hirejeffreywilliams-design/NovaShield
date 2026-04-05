@@ -200,11 +200,12 @@ Return ONLY valid JSON with this exact schema. No markdown, no text outside the 
   "evidence_summary": "2-3 sentence plain-language summary suitable for an official report"
 }`;
 
-router.post("/:id/analyze-image", async (req, res) => {
+router.post("/:id/analyze-image", async (req, res): Promise<void> => {
   try {
     const { image_base64, source = "camera", gps_lat, gps_lon, state_code } = req.body;
     if (!image_base64) {
-      return res.status(400).json({ error: "image_base64 is required" });
+      res.status(400).json({ error: "image_base64 is required" });
+      return;
     }
 
     const { contextText, policyIds } = await fetchPolicyContext(state_code || null);

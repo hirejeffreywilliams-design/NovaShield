@@ -11,6 +11,14 @@ import immigrationRouter from "./immigration";
 import sosRouter from "./sos";
 import learnRouter from "./learn";
 import monitorRouter from "./monitor";
+import authRouter from "./auth";
+import complaintsRouter from "./complaints";
+import bodyCameraRouter from "./body-camera";
+import forumsRouter from "./forums";
+import petitionsRouter from "./petitions";
+import whistleblowerRouter from "./whistleblower";
+import alertsRouter from "./alerts";
+import analyticsRouter from "./analytics";
 
 const router: IRouter = Router();
 
@@ -26,5 +34,13 @@ router.use(immigrationRouter);
 router.use("/sos", sosRouter);
 router.use("/learn", learnRouter);
 router.use("/monitor", monitorRouter);
+router.use("/auth", authRouter);
+router.use("/complaints", complaintsRouter);
+router.use("/body-camera", bodyCameraRouter);
+router.use("/forums", forumsRouter);
+router.use("/petitions", petitionsRouter);
+router.use("/whistleblower", whistleblowerRouter);
+router.use("/alerts", alertsRouter);
+router.use("/analytics", analyticsRouter);
 
 export default router;

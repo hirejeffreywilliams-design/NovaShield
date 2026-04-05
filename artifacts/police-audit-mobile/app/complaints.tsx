@@ -111,9 +111,9 @@ export default function ComplaintsScreen() {
 
   const filteredFederal = useMemo(() => {
     return FEDERAL_RESOURCES.filter((r) => {
-      if (typeFilter !== "all" && r.type !== typeFilter && !(typeFilter === "federal" && r.type === "federal")) {
-        if (typeFilter === "federal") return r.type === "federal";
-        if (typeFilter !== "all") return r.type === typeFilter;
+      const filter: string = typeFilter;
+      if (filter !== "all" && r.type !== filter) {
+        return false;
       }
       if (searchText) {
         const q = searchText.toLowerCase();

@@ -138,10 +138,10 @@ router.get("/states", (_req, res) => {
   res.json({ states });
 });
 
-router.post("/ask", async (req, res) => {
+router.post("/ask", async (req, res): Promise<void> => {
   try {
     const { question, state_code, scenario_id } = req.body;
-    if (!question) return res.status(400).json({ error: "question is required" });
+    if (!question) { res.status(400).json({ error: "question is required" }); return; }
 
     const stateInfo = state_code ? STATE_RESOURCES[state_code.toUpperCase()] : null;
     const stateName = stateInfo?.name || state_code || "your state";
@@ -206,7 +206,7 @@ CRITICAL RULES — FOLLOW EXACTLY:
 
     res.json({
       answer,
-      state: stateInfo ? { code: state_code, name: stateInfo.name, ...stateInfo } : null,
+      state: stateInfo ? { code: state_code, ...stateInfo } : null,
       scenario: scenario || null,
       sources,
       disclaimer: "This information is educational and sourced from public legal references. It is not legal advice. Laws vary by state and can change. Consult a licensed attorney for advice specific to your situation.",

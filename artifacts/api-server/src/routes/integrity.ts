@@ -122,13 +122,14 @@ router.get("/:incidentId/integrity", async (req, res) => {
   }
 });
 
-router.post("/:incidentId/integrity/verify-image", async (req, res) => {
+router.post("/:incidentId/integrity/verify-image", async (req, res): Promise<void> => {
   try {
     const { incidentId } = req.params;
     const { image_base64, evidence_photo_id } = req.body;
 
     if (!image_base64 || !evidence_photo_id) {
-      return res.status(400).json({ error: "image_base64 and evidence_photo_id are required" });
+      res.status(400).json({ error: "image_base64 and evidence_photo_id are required" });
+      return;
     }
 
     const result = await verifyEvidenceImage(image_base64, evidence_photo_id);

@@ -428,11 +428,12 @@ const SEED_POLICIES = [
   },
 ];
 
-router.post("/seed", async (req, res) => {
+router.post("/seed", async (req, res): Promise<void> => {
   try {
     const existing = await db.select({ id: policyKnowledgeTable.id }).from(policyKnowledgeTable).limit(1);
     if (existing.length > 0) {
-      return res.json({ message: "Knowledge base already seeded", count: existing.length });
+      res.json({ message: "Knowledge base already seeded", count: existing.length });
+      return;
     }
 
     const inserted = await db.insert(policyKnowledgeTable).values(
@@ -571,11 +572,12 @@ router.get("/policies/context", async (req, res) => {
   }
 });
 
-router.post("/policies", async (req, res) => {
+router.post("/policies", async (req, res): Promise<void> => {
   try {
     const { category, jurisdiction_type, jurisdiction_name, state_code, title, content, legal_authority, source_url, policy_type, tags, effective_date } = req.body;
     if (!category || !jurisdiction_type || !title || !content) {
-      return res.status(400).json({ error: "category, jurisdiction_type, title, and content are required" });
+      res.status(400).json({ error: "category, jurisdiction_type, title, and content are required" });
+      return;
     }
     const [policy] = await db
       .insert(policyKnowledgeTable)
@@ -587,11 +589,12 @@ router.post("/policies", async (req, res) => {
   }
 });
 
-router.post("/feedback", async (req, res) => {
+router.post("/feedback", async (req, res): Promise<void> => {
   try {
     const { analysis_result_id, incident_id, concern_type, concern_description, applicable_amendment, feedback_type, notes } = req.body;
     if (!feedback_type) {
-      return res.status(400).json({ error: "feedback_type is required (confirmed | disputed | false_positive | uncertain)" });
+      res.status(400).json({ error: "feedback_type is required (confirmed | disputed | false_positive | uncertain)" });
+      return;
     }
     const [feedback] = await db
       .insert(analysisFeedbackTable)
