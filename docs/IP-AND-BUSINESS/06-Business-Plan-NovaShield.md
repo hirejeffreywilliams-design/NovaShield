@@ -35,7 +35,7 @@ NovaShield is a community-powered police accountability and civic safety platfor
 **Platform:** NovaShield
 **Founder:** Jeffrey W. Williams
 **Contact:** hirejeffreywilliams@gmail.com
-**Platform Status:** MVP/prototype stage — 3,314 lines of TypeScript, 54 source files — UI complete, backend in active development
+**Platform Status:** MVP/prototype stage — 29,441 lines of TypeScript, 54 source files — UI complete, backend in active development
 
 **Mission:** To give every community member the same quality of police accountability information, legal resources, and safety intelligence that civil rights attorneys and advocacy organizations have — free of cost barriers.
 

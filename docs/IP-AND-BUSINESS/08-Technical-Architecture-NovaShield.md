@@ -17,7 +17,7 @@ NovaShield is a full-stack TypeScript monorepo application comprising a React SP
 
 **Current Metrics:**
 - Total source files: 54
-- Total lines of code: 3,314
+- Total lines of code: 29,441
 - Frontend completion: ~80% (UI complete, mock data only)
 - Backend API completion: ~10% (authentication routes only)
 - Database schema completion: ~15% (users table implemented; feature tables designed but not migrated)

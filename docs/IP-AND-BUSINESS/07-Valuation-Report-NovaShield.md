@@ -22,7 +22,7 @@ This valuation report is prepared for internal IP documentation and investor com
 **Platform:** NovaShield — Police Accountability & Community Safety Platform
 **Stage:** MVP/Prototype — UI complete (80%), backend in active development
 **IP:** Patent Pending (PPA filed April 4, 2026); Trademarks in process
-**Code:** 3,314 lines of TypeScript across 54 source files
+**Code:** 29,441 lines of TypeScript across 54 source files
 
 ### Valuation Summary
 
@@ -124,7 +124,7 @@ Using a 30% discount rate (appropriate for early-stage, pre-revenue civic tech w
 
 | Asset | Estimated Value |
 |---|---|
-| Frontend codebase (UI complete, 3,314 LOC) | $150K – $350K (at $45–$105/LOC for civic tech platform) |
+| Frontend codebase (UI complete, 29,441 LOC) | $150K – $350K (at $45–$105/LOC for civic tech platform) |
 | Backend architecture design and partial implementation | $200K – $400K |
 | Officer Accountability Scoring Algorithm design | $300K – $600K |
 | District Accountability Scoring Engine design | $150K – $300K |
