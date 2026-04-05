@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "expo-av": "^16.0.8",
-    "expo-camera": "^55.0.10",
+    "expo-camera": "^55.0.13",
     "expo-media-library": "^55.0.10"
   }
 }
