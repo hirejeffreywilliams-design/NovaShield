@@ -1,0 +1,782 @@
+// NovaShield/omniscript/services.omni
+// Service Declarations — The Accountability Dimension
+// © 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+// CONFIDENTIAL — Owner Eyes Only.
+
+draw { Nova } from "nova:std"
+draw { Signal, Status, Priority, Timestamp, Duration } from "nova:std/types"
+draw { Service, RequestContext, QueryFilter } from "nova:std/service"
+draw { DataVault } from "nova:std/data"
+
+
+/// Shield Incident recording with cryptographic integrity and IDB broadcast
+@service(
+  id: "audit-svc",
+  platform: "NovaShield",
+  shield: ShieldLevel.MAXIMUM
+)
+service AuditService {
+
+  @inject forge vault: DataVault<Any>
+  @inject forge auth: Nova.Auth
+  @inject forge bus: Nova.Bus
+
+  @portal(endpoint: "novashield.audit.get")
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: StandardRequestSchema)
+  manifest getAll(
+    ctx:    RequestContext,
+    filter: QueryFilter?
+  ): flow<Constellation<Any>> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge results = sync this.vault.query({
+      owner:  identity.userId,
+      filter: filter ?? QueryFilter.none(),
+      limit:  100
+    })
+
+    Nova.Metrics.pulse("novashield.auditservice.get", 1.0)
+    propagate results
+  }
+
+  @portal(endpoint: "novashield.audit.create")
+  @audit
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: CreateRequestSchema)
+  manifest create(
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge entry = sync this.vault.store({
+      ...input,
+      id:        Nova.Crypto.uuid(),
+      ownerId:   identity.userId,
+      createdAt: Timestamp.now(),
+      status:    Status.ACTIVE
+    })
+
+    // Broadcast creation signal via IDB
+    Nova.Bus.emit("novashield.audit.created", Signal {
+      topic:   "novashield.audit.created",
+      payload: { entryId: entry.id, userId: identity.userId },
+      origin:  "novashield",
+      priority: Priority.NORMAL
+    })
+
+    Nova.Metrics.pulse("novashield.auditservice.create", 1.0)
+    propagate entry
+  }
+
+  @portal(endpoint: "novashield.audit.update")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest update(
+    id:    Text,
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+    forge existing = sync this.vault.get(id)
+    when (existing == nil) {
+      fault ResourceNotFound { resource: "Audit", id }
+    }
+
+    forge updated = sync this.vault.update(id, {
+      ...input,
+      updatedAt: Timestamp.now(),
+      updatedBy: identity.userId
+    })
+
+    propagate updated
+  }
+
+  @portal(endpoint: "novashield.audit.delete")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest dissolve(id: Text, ctx: RequestContext): flow<nil> {
+    forge identity = sync this.auth.verify(ctx)
+    sync this.vault.softDelete(id, identity.userId)
+    Nova.Metrics.pulse("novashield.auditservice.delete", 1.0)
+    propagate nil
+  }
+}
+
+/// Shield Bearer registration, badge resolution, and disciplinary record management
+@service(
+  id: "off-svc",
+  platform: "NovaShield",
+  shield: ShieldLevel.HIGH
+)
+service OfficerService {
+
+  @inject forge vault: DataVault<Any>
+  @inject forge auth: Nova.Auth
+  @inject forge bus: Nova.Bus
+
+  @portal(endpoint: "novashield.officer.get")
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: StandardRequestSchema)
+  manifest getAll(
+    ctx:    RequestContext,
+    filter: QueryFilter?
+  ): flow<Constellation<Any>> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge results = sync this.vault.query({
+      owner:  identity.userId,
+      filter: filter ?? QueryFilter.none(),
+      limit:  100
+    })
+
+    Nova.Metrics.pulse("novashield.officerservice.get", 1.0)
+    propagate results
+  }
+
+  @portal(endpoint: "novashield.officer.create")
+  @audit
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: CreateRequestSchema)
+  manifest create(
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge entry = sync this.vault.store({
+      ...input,
+      id:        Nova.Crypto.uuid(),
+      ownerId:   identity.userId,
+      createdAt: Timestamp.now(),
+      status:    Status.ACTIVE
+    })
+
+    // Broadcast creation signal via IDB
+    Nova.Bus.emit("novashield.officer.created", Signal {
+      topic:   "novashield.officer.created",
+      payload: { entryId: entry.id, userId: identity.userId },
+      origin:  "novashield",
+      priority: Priority.NORMAL
+    })
+
+    Nova.Metrics.pulse("novashield.officerservice.create", 1.0)
+    propagate entry
+  }
+
+  @portal(endpoint: "novashield.officer.update")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest update(
+    id:    Text,
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+    forge existing = sync this.vault.get(id)
+    when (existing == nil) {
+      fault ResourceNotFound { resource: "Officer", id }
+    }
+
+    forge updated = sync this.vault.update(id, {
+      ...input,
+      updatedAt: Timestamp.now(),
+      updatedBy: identity.userId
+    })
+
+    propagate updated
+  }
+
+  @portal(endpoint: "novashield.officer.delete")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest dissolve(id: Text, ctx: RequestContext): flow<nil> {
+    forge identity = sync this.auth.verify(ctx)
+    sync this.vault.softDelete(id, identity.userId)
+    Nova.Metrics.pulse("novashield.officerservice.delete", 1.0)
+    propagate nil
+  }
+}
+
+/// Shield Authority registration and organizational hierarchy management
+@service(
+  id: "department-svc",
+  platform: "NovaShield",
+  shield: ShieldLevel.HIGH
+)
+service DepartmentService {
+
+  @inject forge vault: DataVault<Any>
+  @inject forge auth: Nova.Auth
+  @inject forge bus: Nova.Bus
+
+  @portal(endpoint: "novashield.department.get")
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: StandardRequestSchema)
+  manifest getAll(
+    ctx:    RequestContext,
+    filter: QueryFilter?
+  ): flow<Constellation<Any>> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge results = sync this.vault.query({
+      owner:  identity.userId,
+      filter: filter ?? QueryFilter.none(),
+      limit:  100
+    })
+
+    Nova.Metrics.pulse("novashield.departmentservice.get", 1.0)
+    propagate results
+  }
+
+  @portal(endpoint: "novashield.department.create")
+  @audit
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: CreateRequestSchema)
+  manifest create(
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge entry = sync this.vault.store({
+      ...input,
+      id:        Nova.Crypto.uuid(),
+      ownerId:   identity.userId,
+      createdAt: Timestamp.now(),
+      status:    Status.ACTIVE
+    })
+
+    // Broadcast creation signal via IDB
+    Nova.Bus.emit("novashield.department.created", Signal {
+      topic:   "novashield.department.created",
+      payload: { entryId: entry.id, userId: identity.userId },
+      origin:  "novashield",
+      priority: Priority.NORMAL
+    })
+
+    Nova.Metrics.pulse("novashield.departmentservice.create", 1.0)
+    propagate entry
+  }
+
+  @portal(endpoint: "novashield.department.update")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest update(
+    id:    Text,
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+    forge existing = sync this.vault.get(id)
+    when (existing == nil) {
+      fault ResourceNotFound { resource: "Department", id }
+    }
+
+    forge updated = sync this.vault.update(id, {
+      ...input,
+      updatedAt: Timestamp.now(),
+      updatedBy: identity.userId
+    })
+
+    propagate updated
+  }
+
+  @portal(endpoint: "novashield.department.delete")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest dissolve(id: Text, ctx: RequestContext): flow<nil> {
+    forge identity = sync this.auth.verify(ctx)
+    sync this.vault.softDelete(id, identity.userId)
+    Nova.Metrics.pulse("novashield.departmentservice.delete", 1.0)
+    propagate nil
+  }
+}
+
+/// Civilian complaint intake, triage, and resolution tracking
+@service(
+  id: "accountabilityclaim-svc",
+  platform: "NovaShield",
+  shield: ShieldLevel.STANDARD
+)
+service AccountabilityClaimService {
+
+  @inject forge vault: DataVault<Any>
+  @inject forge auth: Nova.Auth
+  @inject forge bus: Nova.Bus
+
+  @portal(endpoint: "novashield.accountabilityclaim.get")
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: StandardRequestSchema)
+  manifest getAll(
+    ctx:    RequestContext,
+    filter: QueryFilter?
+  ): flow<Constellation<Any>> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge results = sync this.vault.query({
+      owner:  identity.userId,
+      filter: filter ?? QueryFilter.none(),
+      limit:  100
+    })
+
+    Nova.Metrics.pulse("novashield.accountabilityclaimservice.get", 1.0)
+    propagate results
+  }
+
+  @portal(endpoint: "novashield.accountabilityclaim.create")
+  @audit
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: CreateRequestSchema)
+  manifest create(
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge entry = sync this.vault.store({
+      ...input,
+      id:        Nova.Crypto.uuid(),
+      ownerId:   identity.userId,
+      createdAt: Timestamp.now(),
+      status:    Status.ACTIVE
+    })
+
+    // Broadcast creation signal via IDB
+    Nova.Bus.emit("novashield.accountabilityclaim.created", Signal {
+      topic:   "novashield.accountabilityclaim.created",
+      payload: { entryId: entry.id, userId: identity.userId },
+      origin:  "novashield",
+      priority: Priority.NORMAL
+    })
+
+    Nova.Metrics.pulse("novashield.accountabilityclaimservice.create", 1.0)
+    propagate entry
+  }
+
+  @portal(endpoint: "novashield.accountabilityclaim.update")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest update(
+    id:    Text,
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+    forge existing = sync this.vault.get(id)
+    when (existing == nil) {
+      fault ResourceNotFound { resource: "AccountabilityClaim", id }
+    }
+
+    forge updated = sync this.vault.update(id, {
+      ...input,
+      updatedAt: Timestamp.now(),
+      updatedBy: identity.userId
+    })
+
+    propagate updated
+  }
+
+  @portal(endpoint: "novashield.accountabilityclaim.delete")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest dissolve(id: Text, ctx: RequestContext): flow<nil> {
+    forge identity = sync this.auth.verify(ctx)
+    sync this.vault.softDelete(id, identity.userId)
+    Nova.Metrics.pulse("novashield.accountabilityclaimservice.delete", 1.0)
+    propagate nil
+  }
+}
+
+/// Public-facing Shield Transparency Report generation and publication
+@service(
+  id: "transparencyreport-svc",
+  platform: "NovaShield",
+  shield: ShieldLevel.STANDARD
+)
+service TransparencyReportService {
+
+  @inject forge vault: DataVault<Any>
+  @inject forge auth: Nova.Auth
+  @inject forge bus: Nova.Bus
+
+  @portal(endpoint: "novashield.transparencyreport.get")
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: StandardRequestSchema)
+  manifest getAll(
+    ctx:    RequestContext,
+    filter: QueryFilter?
+  ): flow<Constellation<Any>> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge results = sync this.vault.query({
+      owner:  identity.userId,
+      filter: filter ?? QueryFilter.none(),
+      limit:  100
+    })
+
+    Nova.Metrics.pulse("novashield.transparencyreportservice.get", 1.0)
+    propagate results
+  }
+
+  @portal(endpoint: "novashield.transparencyreport.create")
+  @audit
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: CreateRequestSchema)
+  manifest create(
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge entry = sync this.vault.store({
+      ...input,
+      id:        Nova.Crypto.uuid(),
+      ownerId:   identity.userId,
+      createdAt: Timestamp.now(),
+      status:    Status.ACTIVE
+    })
+
+    // Broadcast creation signal via IDB
+    Nova.Bus.emit("novashield.transparencyreport.created", Signal {
+      topic:   "novashield.transparencyreport.created",
+      payload: { entryId: entry.id, userId: identity.userId },
+      origin:  "novashield",
+      priority: Priority.NORMAL
+    })
+
+    Nova.Metrics.pulse("novashield.transparencyreportservice.create", 1.0)
+    propagate entry
+  }
+
+  @portal(endpoint: "novashield.transparencyreport.update")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest update(
+    id:    Text,
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+    forge existing = sync this.vault.get(id)
+    when (existing == nil) {
+      fault ResourceNotFound { resource: "TransparencyReport", id }
+    }
+
+    forge updated = sync this.vault.update(id, {
+      ...input,
+      updatedAt: Timestamp.now(),
+      updatedBy: identity.userId
+    })
+
+    propagate updated
+  }
+
+  @portal(endpoint: "novashield.transparencyreport.delete")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest dissolve(id: Text, ctx: RequestContext): flow<nil> {
+    forge identity = sync this.auth.verify(ctx)
+    sync this.vault.softDelete(id, identity.userId)
+    Nova.Metrics.pulse("novashield.transparencyreportservice.delete", 1.0)
+    propagate nil
+  }
+}
+
+/// AI-powered pattern analysis of Shield Chronicle data
+@service(
+  id: "analyz-svc",
+  platform: "NovaShield",
+  shield: ShieldLevel.STANDARD
+)
+service AnalyzeService {
+
+  @inject forge vault: DataVault<Any>
+  @inject forge auth: Nova.Auth
+  @inject forge bus: Nova.Bus
+
+  @portal(endpoint: "novashield.analyze.get")
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: StandardRequestSchema)
+  manifest getAll(
+    ctx:    RequestContext,
+    filter: QueryFilter?
+  ): flow<Constellation<Any>> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge results = sync this.vault.query({
+      owner:  identity.userId,
+      filter: filter ?? QueryFilter.none(),
+      limit:  100
+    })
+
+    Nova.Metrics.pulse("novashield.analyzeservice.get", 1.0)
+    propagate results
+  }
+
+  @portal(endpoint: "novashield.analyze.create")
+  @audit
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: CreateRequestSchema)
+  manifest create(
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge entry = sync this.vault.store({
+      ...input,
+      id:        Nova.Crypto.uuid(),
+      ownerId:   identity.userId,
+      createdAt: Timestamp.now(),
+      status:    Status.ACTIVE
+    })
+
+    // Broadcast creation signal via IDB
+    Nova.Bus.emit("novashield.analyze.created", Signal {
+      topic:   "novashield.analyze.created",
+      payload: { entryId: entry.id, userId: identity.userId },
+      origin:  "novashield",
+      priority: Priority.NORMAL
+    })
+
+    Nova.Metrics.pulse("novashield.analyzeservice.create", 1.0)
+    propagate entry
+  }
+
+  @portal(endpoint: "novashield.analyze.update")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest update(
+    id:    Text,
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+    forge existing = sync this.vault.get(id)
+    when (existing == nil) {
+      fault ResourceNotFound { resource: "Analyze", id }
+    }
+
+    forge updated = sync this.vault.update(id, {
+      ...input,
+      updatedAt: Timestamp.now(),
+      updatedBy: identity.userId
+    })
+
+    propagate updated
+  }
+
+  @portal(endpoint: "novashield.analyze.delete")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest dissolve(id: Text, ctx: RequestContext): flow<nil> {
+    forge identity = sync this.auth.verify(ctx)
+    sync this.vault.softDelete(id, identity.userId)
+    Nova.Metrics.pulse("novashield.analyzeservice.delete", 1.0)
+    propagate nil
+  }
+}
+
+/// Legal rights information and Know Your Rights educational resources
+@service(
+  id: "right-svc",
+  platform: "NovaShield",
+  shield: ShieldLevel.STANDARD
+)
+service RightsService {
+
+  @inject forge vault: DataVault<Any>
+  @inject forge auth: Nova.Auth
+  @inject forge bus: Nova.Bus
+
+  @portal(endpoint: "novashield.rights.get")
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: StandardRequestSchema)
+  manifest getAll(
+    ctx:    RequestContext,
+    filter: QueryFilter?
+  ): flow<Constellation<Any>> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge results = sync this.vault.query({
+      owner:  identity.userId,
+      filter: filter ?? QueryFilter.none(),
+      limit:  100
+    })
+
+    Nova.Metrics.pulse("novashield.rightsservice.get", 1.0)
+    propagate results
+  }
+
+  @portal(endpoint: "novashield.rights.create")
+  @audit
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: CreateRequestSchema)
+  manifest create(
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge entry = sync this.vault.store({
+      ...input,
+      id:        Nova.Crypto.uuid(),
+      ownerId:   identity.userId,
+      createdAt: Timestamp.now(),
+      status:    Status.ACTIVE
+    })
+
+    // Broadcast creation signal via IDB
+    Nova.Bus.emit("novashield.rights.created", Signal {
+      topic:   "novashield.rights.created",
+      payload: { entryId: entry.id, userId: identity.userId },
+      origin:  "novashield",
+      priority: Priority.NORMAL
+    })
+
+    Nova.Metrics.pulse("novashield.rightsservice.create", 1.0)
+    propagate entry
+  }
+
+  @portal(endpoint: "novashield.rights.update")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest update(
+    id:    Text,
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+    forge existing = sync this.vault.get(id)
+    when (existing == nil) {
+      fault ResourceNotFound { resource: "Rights", id }
+    }
+
+    forge updated = sync this.vault.update(id, {
+      ...input,
+      updatedAt: Timestamp.now(),
+      updatedBy: identity.userId
+    })
+
+    propagate updated
+  }
+
+  @portal(endpoint: "novashield.rights.delete")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest dissolve(id: Text, ctx: RequestContext): flow<nil> {
+    forge identity = sync this.auth.verify(ctx)
+    sync this.vault.softDelete(id, identity.userId)
+    Nova.Metrics.pulse("novashield.rightsservice.delete", 1.0)
+    propagate nil
+  }
+}
+
+/// Emergency distress signal capture and routing for at-risk individuals
+@service(
+  id: "so-svc",
+  platform: "NovaShield",
+  shield: ShieldLevel.STANDARD
+)
+service SOSService {
+
+  @inject forge vault: DataVault<Any>
+  @inject forge auth: Nova.Auth
+  @inject forge bus: Nova.Bus
+
+  @portal(endpoint: "novashield.sos.get")
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: StandardRequestSchema)
+  manifest getAll(
+    ctx:    RequestContext,
+    filter: QueryFilter?
+  ): flow<Constellation<Any>> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge results = sync this.vault.query({
+      owner:  identity.userId,
+      filter: filter ?? QueryFilter.none(),
+      limit:  100
+    })
+
+    Nova.Metrics.pulse("novashield.sosservice.get", 1.0)
+    propagate results
+  }
+
+  @portal(endpoint: "novashield.sos.create")
+  @audit
+  @shield(require: ["AUTHENTICATED"])
+  @validate(schema: CreateRequestSchema)
+  manifest create(
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+
+    forge entry = sync this.vault.store({
+      ...input,
+      id:        Nova.Crypto.uuid(),
+      ownerId:   identity.userId,
+      createdAt: Timestamp.now(),
+      status:    Status.ACTIVE
+    })
+
+    // Broadcast creation signal via IDB
+    Nova.Bus.emit("novashield.sos.created", Signal {
+      topic:   "novashield.sos.created",
+      payload: { entryId: entry.id, userId: identity.userId },
+      origin:  "novashield",
+      priority: Priority.NORMAL
+    })
+
+    Nova.Metrics.pulse("novashield.sosservice.create", 1.0)
+    propagate entry
+  }
+
+  @portal(endpoint: "novashield.sos.update")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest update(
+    id:    Text,
+    input: Any,
+    ctx:   RequestContext
+  ): flow<Any> {
+    forge identity = sync this.auth.verify(ctx)
+    forge existing = sync this.vault.get(id)
+    when (existing == nil) {
+      fault ResourceNotFound { resource: "SOS", id }
+    }
+
+    forge updated = sync this.vault.update(id, {
+      ...input,
+      updatedAt: Timestamp.now(),
+      updatedBy: identity.userId
+    })
+
+    propagate updated
+  }
+
+  @portal(endpoint: "novashield.sos.delete")
+  @audit
+  @shield(require: ["AUTHENTICATED", "OWNS_RESOURCE"])
+  manifest dissolve(id: Text, ctx: RequestContext): flow<nil> {
+    forge identity = sync this.auth.verify(ctx)
+    sync this.vault.softDelete(id, identity.userId)
+    Nova.Metrics.pulse("novashield.sosservice.delete", 1.0)
+    propagate nil
+  }
+}
+
+
+seal {
+  service AuditService
+  service OfficerService
+  service DepartmentService
+  service AccountabilityClaimService
+  service TransparencyReportService
+  service AnalyzeService
+  service RightsService
+  service SOSService
+}

@@ -1,0 +1,88 @@
+// NovaShield/omniscript/main.omni
+// Platform Entry Point — The Accountability Dimension
+// © 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+// CONFIDENTIAL — Owner Eyes Only.
+
+draw { Nova } from "nova:std"
+draw { Signal, Status, Vibe, Emotion, Dimension } from "nova:std/types"
+draw { Platform } from "nova:std/platform"
+
+  draw { IncidentRegistryUniverse } from "./universes/IncidentRegistry"
+  draw { OfficerAccountabilityUniverse } from "./universes/OfficerAccountability"
+  draw { CommunityOversightUniverse } from "./universes/CommunityOversight"
+
+  draw { ConductSignalEngine } from "./engines/ConductSignalEngine"
+  draw { SeverityClassificationEngine } from "./engines/SeverityClassificationEngine"
+  draw { AnomalyDetectionEngine } from "./engines/AnomalyDetectionEngine"
+  draw { IntegrityMonitorEngine } from "./engines/IntegrityMonitorEngine"
+
+  draw { AuditService } from "./services/AuditService"
+  draw { OfficerService } from "./services/OfficerService"
+  draw { DepartmentService } from "./services/DepartmentService"
+
+/// Platform manifest for NovaShield
+/// Dimension: The Accountability Dimension
+@platform(
+  id: "novashield",
+  version: "1.0.0",
+  dimension: "The Accountability Dimension",
+  copyright: "© 2024–2026 Jeffrey W Williams LLC. All Rights Reserved."
+)
+manifest bootstrapPlatform(): flow<nil> {
+
+  Nova.Log.info("Bootstrapping NovaShield — The Accountability Dimension")
+
+  // ── Register all Intelligence Cores ──────────────────────────────────────
+  Nova.Engine.register(ConductSignalEngine)
+  Nova.Engine.register(SeverityClassificationEngine)
+  Nova.Engine.register(AnomalyDetectionEngine)
+  Nova.Engine.register(IntegrityMonitorEngine)
+
+  // ── Activate all Universes ────────────────────────────────────────────────
+  IncidentRegistryUniverse.activate()
+  OfficerAccountabilityUniverse.activate()
+  CommunityOversightUniverse.activate()
+
+  // ── Connect to Inter-Dimensional Bus ─────────────────────────────────────
+  sync Nova.Bus.connect(platformId: "novashield")
+  Nova.Log.info("NovaShield connected to Inter-Dimensional Bus")
+
+  // ── Start Pulse Watch ─────────────────────────────────────────────────────
+  Nova.Metrics.startPulseWatch("novashield")
+
+  Nova.Log.info("NovaShield fully Calibrated and Activated")
+}
+
+/// IDB Signal Handlers
+form NovaShieldPlatform extends Platform {
+
+  @on_signal(topic: "shield.incident.high-severity")
+  manifest onHighSeverity(signal: Signal): flow<nil> {
+    Nova.Log.info(`Signal received: ${signal.topic} from ${signal.origin}`)
+    sync dispatchHighSeverity(signal)
+  }
+
+  @on_signal(topic: "shield.claim.filed")
+  manifest onFiled(signal: Signal): flow<nil> {
+    Nova.Log.info(`Signal received: ${signal.topic} from ${signal.origin}`)
+    sync dispatchFiled(signal)
+  }
+
+  manifest getStatus(): PlatformStatus {
+    propagate PlatformStatus {
+      platformId: "novashield",
+      dimension: "The Accountability Dimension",
+      activeEngines: Nova.Engine.getActive().length,
+      vibe: Nova.Vibe.getPlatformVibe(),
+      status: Status.ACTIVE,
+      timestamp: Timestamp.now()
+    }
+  }
+}
+
+// ── Entrypoint ────────────────────────────────────────────────────────────────
+forge platform = NovaShieldPlatform.getInstance()
+sync bootstrapPlatform()
+platform.activate()
+
+Nova.Log.info(`NovaShield — The Accountability Dimension — Signal Confirmed`)

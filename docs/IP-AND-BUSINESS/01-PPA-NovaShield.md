@@ -266,6 +266,109 @@ The Anonymous Police Encounter Documentation System allows citizens to submit fu
 
 ---
 
+---
+
+## OMNISCRIPT IMPLEMENTATION
+
+> © 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+### How the Patented Invention Is Expressed in OmniScript
+
+The patented invention — **Officer Accountability Scoring Algorithm with composite multi-factor civic intelligence** — is natively expressed in **OmniScript** (file extension `.omni`), the proprietary domain-specific language of the OmniDLOS / Omnivex ecosystem. OmniScript is the Cognitive Layer through which the Four-Dimensional Operating System declares, registers, and composes all computation units (Engines), communication interfaces (Nexus Points and Portals), and data repositories (Vaults).
+
+#### OmniScript Architecture for NovaShield Police Accountability & Community Safety Platform
+
+The invention is implemented within the **`CitizenSafetyUniverse`** — an OmniScript `universe` block that defines the dimensional scope, emotional vibe, and computational topology of the platform:
+
+- **Primary Engine:** `AccountabilityScoreEngine` — the core computation unit implementing the patented algorithm
+- **Supporting Engines:** `DistrictScoringEngine`, `IncidentVerificationEngine`, `AnonymousDocumentationEngine`
+- **Services:** `OfficerScoreService`, `AlertDistributionService`, `LegalResourceService`
+- **Dimensional Scope:** `Dimension.PHYSICAL`
+- **Emotional Vibe:** `Vibe.JUSTICE`
+- **Nexus Points (APIs):** Exposed via OmniScript `portal` declarations on each Engine
+- **Data Vaults:** All persistent state archived via `Nova.Vault` with Guardian Layer access control
+- **Cross-Platform Bus:** All inter-engine signals transmitted via `Nova.Bus` (the OmniDLOS Inter-Dimensional Bus)
+
+#### Patentable OmniScript Code Sample
+
+The following `.omni` source file demonstrates the patented concepts in OmniScript:
+
+```omni
+// NovaShield — Officer Accountability Scoring Engine
+universe CitizenSafetyUniverse {
+  dimension: Dimension.PHYSICAL
+  vibe: Vibe.JUSTICE
+
+  engine AccountabilityScoreEngine implements Intelligent {
+    forge SCORE_WEIGHT_COMMUNITY: Probability = 35.0%
+    forge SCORE_WEIGHT_SUSTAINED: Probability = 30.0%
+    forge SCORE_WEIGHT_SEVERITY:  Probability = 20.0%
+    forge SCORE_WEIGHT_TEMPORAL:  Probability = 10.0%
+    forge SCORE_WEIGHT_FOIA:      Probability = 5.0%
+
+    manifest flow computeOfficerScore(officerId: Text): flow<Pulse> {
+      forge reports   = sync OfficerScoreService.fetchCommunityReports(officerId)
+      forge sustained = sync OfficerScoreService.fetchSustainedComplaints(officerId)
+      forge foia      = sync OfficerScoreService.fetchFOIARecords(officerId)
+
+      forge rawScore: Pulse =
+          (reports.normalizedCount   * SCORE_WEIGHT_COMMUNITY) +
+          (sustained.ratio           * SCORE_WEIGHT_SUSTAINED) +
+          (reports.severityWeighted  * SCORE_WEIGHT_SEVERITY)  +
+          (reports.temporalDecay     * SCORE_WEIGHT_TEMPORAL)  +
+          (foia.crossReferenceScore  * SCORE_WEIGHT_FOIA)
+
+      Nova.Bus.emit("accountability.scored", { officerId, score: rawScore })
+      propagate rawScore
+    }
+
+    manifest flow issueAlert(geo: GeoCoordinate, alertType: Text): flow<Signal> {
+      forge alert = sync AlertDistributionService.compose(geo, alertType)
+      sync Nova.Shield.validateAnonymous(alert.submitterId)
+      propagate Nova.Bus.emit("community.alert.issued", alert)
+    }
+  }
+
+  service AnonymousDocumentationEngine {
+    @Guardian(level: 5)
+    manifest flow submitReport(payload: EncryptedPayload): flow<VerificationToken> {
+      forge token = sync Nova.Vault.store(payload, disclosure: DisclosurePolicy.NEVER)
+      propagate token
+    }
+  }
+}
+```
+
+#### OmniScript Constructs Protecting the Patented Innovation
+
+| OmniScript Construct | Patent Relevance |
+|---|---|
+| `engine AccountabilityScoreEngine` | Declares the core patented computation unit as a registered OmniScript Engine |
+| `universe CitizenSafetyUniverse` | Establishes the dimensional and emotional boundary of the patented system |
+| `manifest flow` | Expresses each patented method as a typed async OmniScript function |
+| `Nova.Vault.archive()` | Archives all patented output to the OmniDLOS Vault (encrypted, immutable ledger) |
+| `Nova.Bus.emit()` | Cross-dimensional signal propagation — the Inter-Dimensional Bus nexus |
+| `@Guardian(level: N)` | Guardian Layer decorator enforcing OmniDLOS access control on patented services |
+| `forge` / `weave` | Immutable/mutable binding of patented constants and working variables |
+| `Probability` type | Native OmniScript probability literal enforcing 0–100% range at compile time |
+
+#### OmniDLOS Terminology Reference
+
+Within the OmniDLOS ecosystem, the components of this invention carry the following proprietary names:
+
+- **Engines** → The computation units (`AccountabilityScoreEngine`, etc.) are registered OmniScript Engines in the OmniVault package registry
+- **Nexus Points** → Each `portal` declaration is a Nexus Point — the atom of inter-system dialogue in OmniDLOS
+- **Vaults** → All persistent data is archived in Nova Vault repositories with Guardian Layer access control
+- **Guardian Layers** → Tiered access control system (levels 1–10) protecting all sensitive Engine operations
+- **Pulse** → The OmniScript native float type used for all real-time scoring and probabilistic values
+- **Chronicle** → The OmniScript temporal type representing dates with cross-dimensional awareness
+- **Signal** → The typed event object propagated across the Inter-Dimensional Bus
+- **Constellation** → The OmniScript collection type (array equivalent) for dimensional data sets
+
+© 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+---
+
 ## CLAIMS
 
 What is claimed is:

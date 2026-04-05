@@ -1,0 +1,70 @@
+{
+  "name":        "novashield",
+  "displayName": "NovaShield",
+  "version":     "1.0.0",
+  "language":    "omniscript@1.0",
+  "platform":    "NovaShield",
+  "runtime":     "omnidlos-runtime@4.0",
+
+  "description": "Where transparency is not optional, and every action leaves an immutable mark. NovaShield provides civilians and oversight boards with real-time accountability data on law enforcement.",
+  "dimension":   "The Accountability Dimension",
+
+  "engines": [
+    "ConductSignalEngine",
+    "SeverityClassificationEngine",
+    "AnomalyDetectionEngine",
+    "IntegrityMonitorEngine",
+    "AccountabilityReportEngine",
+    "ImmutableChronicleEngine"
+  ],
+
+  "universes": [
+    "IncidentRegistry",
+    "OfficerAccountability",
+    "CommunityOversight"
+  ],
+
+  "services": [
+    "AuditService",
+    "OfficerService",
+    "DepartmentService",
+    "AccountabilityClaimService",
+    "TransparencyReportService",
+    "AnalyzeService",
+    "RightsService",
+    "SOSService"
+  ],
+
+  "idb": {
+    "topics": [
+      "shield.incident.high-severity",
+      "shield.claim.filed",
+      "shield.audit.completed",
+      "shield.transparency.published"
+    ]
+  },
+
+  "vault": "ShieldVault",
+
+  "dependencies": {
+    "nova-auth":    "omnivault:nova-auth@2.1.0",
+    "nova-data":    "omnivault:nova-data@3.0.0",
+    "nova-metrics": "omnivault:nova-metrics@1.5.0",
+    "nova-ai":      "omnivault:nova-ai@4.0.0",
+    "nova-bus":     "omnivault:nova-bus@2.3.0",
+    "nova-vibe":    "omnivault:nova-vibe@1.2.0",
+    "nova-emotion": "omnivault:nova-emotion@1.2.0"
+  },
+
+  "shields": ["RBAC", "CSRF", "RATE_LIMIT", "MFA", "SIGNAL_CLOAKING"],
+
+  "omnivex": {
+    "constellation": "omnivex",
+    "platformIndex": 4,
+    "totalPlatforms": 13
+  },
+
+  "copyright":   "© 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.",
+  "license":     "PROPRIETARY",
+  "owner":       "Jeffrey W Williams LLC"
+}

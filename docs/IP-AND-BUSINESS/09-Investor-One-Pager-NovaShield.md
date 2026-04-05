@@ -180,3 +180,70 @@ Creator of the NovaShield platform and the OmniDLOS Holdings D4 ecosystem — mu
 
 *© 2024–2026 Jeffrey W. Williams LLC. All Rights Reserved. CONFIDENTIAL — Owner Eyes Only*
 *OmniDLOS Holdings Ecosystem — D4*
+
+---
+
+## OMNISCRIPT: KEY TECHNOLOGY DIFFERENTIATOR
+
+> © 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+### Why OmniScript Makes NovaShield Police Accountability & Community Safety Platform Investable Beyond the Product
+
+**OmniScript** is the proprietary domain-specific language (`.omni`) that powers NovaShield Police Accountability & Community Safety Platform — and it is the single most important technology differentiator that separates this platform from every comparable investment opportunity in the market.
+
+#### The OmniScript Investment Thesis
+
+**1. Proprietary Language = Inimitable Moat**
+No competitor can fork, replicate, or reverse-engineer NovaShield Police Accountability & Community Safety Platform's OmniScript implementation without accessing the OmniDLOS runtime, OmniVault registry, and Inter-Dimensional Bus. This is not a product advantage — it is a language-level architectural barrier. Comparable moats: Bloomberg Terminal's proprietary language, Salesforce Apex, and the early iOS Objective-C ecosystem.
+
+**2. 13-Platform Ecosystem Network Effects**
+NovaShield Police Accountability & Community Safety Platform does not operate in isolation. Through OmniScript's `Nova.Bus`, it exchanges real-time typed Signals with all 12 other OmniDLOS platforms. An investor in NovaShield Police Accountability & Community Safety Platform is investing into a 13-platform ecosystem with compounding network effects — not a standalone application.
+
+**3. IP Stack Depth**
+The OmniScript implementation adds three IP layers:
+- **Copyright:** All `.omni` source files are protected creative works
+- **Trade Secret:** Engine logic expressed in a proprietary language inaccessible to competitors
+- **Patent Support:** OmniScript code serves as technical disclosure for all filed patent applications
+
+**4. OmniVault Package Revenue**
+The platform's core engines — including `AccountabilityScoreEngine` — are registered in the OmniVault (OmniDLOS's proprietary package registry). These Engine packages can be licensed to other platforms, creating a B2B technology licensing revenue stream independent of the consumer product.
+
+#### OmniScript Technical Snapshot
+
+| Component | Detail |
+|---|---|
+| Language | OmniScript v1.0 (proprietary DSL, file extension `.omni`) |
+| Runtime | Compiles to optimized TypeScript — deploys on any Node.js environment |
+| Primary Engine | `AccountabilityScoreEngine` |
+| Supporting Engines | `DistrictScoringEngine`, `IncidentVerificationEngine`, `AnonymousDocumentationEngine` |
+| Universe | `CitizenSafetyUniverse` (Dimension.PHYSICAL) |
+| Package Registry | OmniVault (exclusive to OmniDLOS ecosystem) |
+| Security | Guardian Layer — language-native tiered access control |
+| Cross-Platform Bus | `Nova.Bus` — typed Inter-Dimensional Signal system |
+
+#### OmniScript Sample (Live Platform Code)
+
+```omni
+// NovaShield — Officer Accountability Scoring Engine
+universe CitizenSafetyUniverse {
+  dimension: Dimension.PHYSICAL
+  vibe: Vibe.JUSTICE
+
+  engine AccountabilityScoreEngine implements Intelligent {
+    forge SCORE_WEIGHT_COMMUNITY: Probability = 35.0%
+    forge SCORE_WEIGHT_SUSTAINED: Probability = 30.0%
+    forge SCORE_WEIGHT_SEVERITY:  Probability = 20.0%
+    forge SCORE_WEIGHT_TEMPORAL:  Probability = 10.0%
+    forge SCORE_WEIGHT_FOIA:      Probability = 5.0%
+
+    manifest flow computeOfficerScore(officerId: Text): flow<Pulse> {
+      forge reports   = sync OfficerScoreService.fetchCommunityReports(officerId)
+      forge sustained = sync OfficerScoreService.fetchSustainedComplaints(officerId)
+      forge foia      = sync OfficerScoreService.fetchFOIARecords(officerId)
+
+      forge ra...
+```
+
+© 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+---

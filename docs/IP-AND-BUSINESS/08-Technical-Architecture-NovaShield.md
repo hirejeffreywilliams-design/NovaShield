@@ -527,3 +527,152 @@ SENTRY_DSN=<for error monitoring>
 *© 2024–2026 Jeffrey W. Williams LLC. All Rights Reserved.*
 *CONFIDENTIAL — Owner Eyes Only*
 *OmniDLOS Holdings Ecosystem — D4*
+
+---
+
+## OMNISCRIPT ARCHITECTURE INTEGRATION
+
+> © 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+### OmniScript as the Cognitive Layer of NovaShield Police Accountability & Community Safety Platform
+
+**NovaShield Police Accountability & Community Safety Platform** is architected on **OmniScript** — the proprietary domain-specific language (`.omni`) of the OmniDLOS ecosystem. OmniScript compiles to an optimized TypeScript/JavaScript runtime and serves as the Cognitive Layer through which all platform computation, communication, and data persistence is expressed.
+
+#### OmniScript System Architecture
+
+```
+NovaShield Police Accountability & Community Safety Platform — OmniScript Architecture
+├── universe CitizenSafetyUniverse/
+│   ├── engine AccountabilityScoreEngine.omni          ← Primary computation engine
+│   ├── engine DistrictScoringEngine.omni                   ← Supporting engine
+│   ├── engine IncidentVerificationEngine.omni              ← Supporting engine
+│   ├── engine AnonymousDocumentationEngine.omni            ← Supporting engine
+│   ├── service OfficerScoreService.omni                     ← Service layer
+│   ├── service AlertDistributionService.omni                ← Service layer
+│   ├── service LegalResourceService.omni                    ← Service layer
+│   ├── portals/                               ← Nexus Point declarations
+│   │   ├── open-portals.omni                  ← REST API (Open Portal) endpoints
+│   │   └── pulse-channels.omni               ← WebSocket (Pulse Channel) connections
+│   └── vaults/                               ← Data Vault schemas
+│       ├── primary.vault.omni                 ← Primary data vault
+│       └── archive.vault.omni                 ← Immutable legacy archive
+├── omni.manifest                              ← OmniVault package manifest
+└── .omnirc                                    ← OmniScript runtime configuration
+```
+
+#### OmniScript Engine Declarations
+
+Each major subsystem of NovaShield Police Accountability & Community Safety Platform is declared as an OmniScript `engine` — a typed, composable computation unit registered in the OmniVault package registry:
+
+| Engine | Role | OmniScript Pattern |
+|---|---|---|
+| `AccountabilityScoreEngine` | Primary computation — implements the core patented algorithm | `engine AccountabilityScoreEngine implements Intelligent` |
+| `DistrictScoringEngine` | Supporting computation unit | `engine DistrictScoringEngine` |
+| `IncidentVerificationEngine` | Supporting computation unit | `engine IncidentVerificationEngine` |
+| `AnonymousDocumentationEngine` | Supporting computation unit | `engine AnonymousDocumentationEngine` |
+
+#### Nexus Point Architecture (OmniDLOS API Layer)
+
+All external integrations are declared as **Nexus Points** in OmniScript — the proprietary OmniDLOS term for API interfaces:
+
+| Nexus Point Type | OmniScript Declaration | Usage |
+|---|---|---|
+| Open Portal (REST) | `portal OpenPortal<NovaShieldAPI>` | Standard HTTP/REST communication |
+| Pulse Channel (WebSocket) | `pulse PulseChannel<LiveFeed>` | Real-time bidirectional data streaming |
+| Forge Link (internal RPC) | `portal ForgeLink<InternalBus>` | High-speed typed inter-service communication |
+| Echo Signal (Webhook) | `portal EchoSignal<EventHook>` | Outbound event notification system |
+
+#### Guardian Layer Security Model
+
+All sensitive operations in NovaShield Police Accountability & Community Safety Platform are protected by OmniScript's **Guardian Layer** decorator system:
+
+```omni
+// Guardian Layer access control
+@Guardian(level: 5)         // Requires clearance level 5 of 10
+@Dimension(Dimension.PHYSICAL)
+@Audit(trail: AuditTrail.FULL)
+manifest flow sensitiveScoringOperation(userId: Text): flow<SecureResult> {
+  // Operation protected by Guardian Layer — unauthorized access raises QuantumFault
+}
+```
+
+| Guardian Level | Access Tier | Applied To |
+|---|---|---|
+| Level 1–2 | Public Nexus Points | Open data read operations |
+| Level 3–4 | Authenticated user operations | Profile reads, standard queries |
+| Level 5–6 | Premium / verified operations | Core algorithm execution |
+| Level 7–8 | Admin operations | Configuration changes, data exports |
+| Level 9–10 | Owner / root operations | Vault management, Guardian administration |
+
+#### Cross-Dimensional Bus Integration
+
+NovaShield Police Accountability & Community Safety Platform participates in the OmniDLOS **Inter-Dimensional Bus** (`Nova.Bus`) — enabling real-time Signal exchange with all 12 other OmniDLOS platforms:
+
+```omni
+// Emit a Signal to the cross-dimensional bus
+Nova.Bus.emit("platform.event.type", {
+  platformId: "NovaShield",
+  universe: "CitizenSafetyUniverse",
+  dimension: Dimension.PHYSICAL,
+  payload: eventData
+})
+
+// Receive Signals from other dimensions
+drift signal in Nova.Bus.receive(channel: "cross-dimensional") {
+  when (signal.dimension == Dimension.PHYSICAL) {
+    handleIncomingSignal(signal)
+  }
+}
+```
+
+#### OmniScript Code Sample — Core Engine
+
+```omni
+// NovaShield — Officer Accountability Scoring Engine
+universe CitizenSafetyUniverse {
+  dimension: Dimension.PHYSICAL
+  vibe: Vibe.JUSTICE
+
+  engine AccountabilityScoreEngine implements Intelligent {
+    forge SCORE_WEIGHT_COMMUNITY: Probability = 35.0%
+    forge SCORE_WEIGHT_SUSTAINED: Probability = 30.0%
+    forge SCORE_WEIGHT_SEVERITY:  Probability = 20.0%
+    forge SCORE_WEIGHT_TEMPORAL:  Probability = 10.0%
+    forge SCORE_WEIGHT_FOIA:      Probability = 5.0%
+
+    manifest flow computeOfficerScore(officerId: Text): flow<Pulse> {
+      forge reports   = sync OfficerScoreService.fetchCommunityReports(officerId)
+      forge sustained = sync OfficerScoreService.fetchSustainedComplaints(officerId)
+      forge foia      = sync OfficerScoreService.fetchFOIARecords(officerId)
+
+      forge rawScore: Pulse =
+          (reports.normalizedCount   * SCORE_WEIGHT_COMMUNITY) +
+          (sustained.ratio           * SCORE_WEIGHT_SUSTAINED) +
+          (reports.severityWeighted  * SCORE_WEIGHT_SEVERITY)  +
+          (reports.temporalDecay     * SCORE_WEIGHT_TEMPORAL)  +
+          (foia.crossReferenceScore  * SCORE_WEIGHT_FOIA)
+
+      Nova.Bus.emit("accountability.scored", { officerId, score: rawScore })
+      propagate rawScore
+    }
+
+    manifest flow issueAlert(geo: GeoCoordinate, alertType: Text): flow<Signal> {
+      forge alert = sync AlertDistributionService.compose(geo, alertType)
+      sync Nova.Shield.validateAnonymous(alert.submitterId)
+      propagate Nova.Bus.emit("community.alert.issued", alert)
+    }
+  }
+
+  service AnonymousDocumentationEngine {
+    @Guardian(level: 5)
+    manifest flow submitReport(payload: EncryptedPayload): flow<VerificationToken> {
+      forge token = sync Nova.Vault.store(payload, disclosure: DisclosurePolicy.NEVER)
+      propagate token
+    }
+  }
+}
+```
+
+© 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+---

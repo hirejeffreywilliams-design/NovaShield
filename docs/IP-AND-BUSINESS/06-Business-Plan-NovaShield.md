@@ -298,3 +298,65 @@ NovaShield's SAM is defined by: U.S. users who have experienced or are concerned
 *© 2024–2026 Jeffrey W. Williams LLC. All Rights Reserved.*
 *CONFIDENTIAL — Owner Eyes Only*
 *OmniDLOS Holdings Ecosystem — D4*
+
+---
+
+## OMNISCRIPT: PROPRIETARY TECHNOLOGY ADVANTAGE
+
+> © 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+### OmniScript as a Sustainable Competitive Moat
+
+**NovaShield Police Accountability & Community Safety Platform** is powered by **OmniScript** — the proprietary domain-specific language (DSL) of the OmniDLOS / Omnivex ecosystem. OmniScript is not an implementation detail; it is a foundational technology moat that makes the platform architecturally inimitable by any competitor operating within conventional technology stacks.
+
+#### What OmniScript Provides
+
+**1. Engine-Driven Architecture**
+Every computation unit in NovaShield Police Accountability & Community Safety Platform is declared as a registered OmniScript Engine — a typed, composable, self-describing unit of computation that integrates natively with the OmniDLOS ecosystem. The platform's core engines include:
+- `AccountabilityScoreEngine` — primary computation engine
+- `DistrictScoringEngine` | `IncidentVerificationEngine` | `AnonymousDocumentationEngine`
+
+**2. Cross-Platform Interoperability via the Inter-Dimensional Bus**
+OmniScript's built-in `Nova.Bus` system enables NovaShield Police Accountability & Community Safety Platform to exchange typed Signal events with all 12 other OmniDLOS platforms in real time — without external middleware, message queues, or integration layers. This creates a cross-dimensional network effect unavailable to any standalone competitor.
+
+**3. Proprietary Type System**
+OmniScript introduces types unavailable in any general-purpose language:
+- `Pulse` — real-time scoring float with dimensional awareness
+- `Vibe` — emotional intelligence primitive (first-class in the type system)
+- `Emotion` — structured emotional state with history tracking
+- `Chronicle` — temporally-aware date type for legacy and history operations
+- `Probability` — 0–100% literal enforced at compile time
+
+**4. Guardian Layer Security Architecture**
+All sensitive platform operations are decorated with `@Guardian(level: N)` — OmniScript's native access control system that enforces tiered authorization without external security libraries.
+
+**5. OmniVault Package Integration**
+All NovaShield Police Accountability & Community Safety Platform modules are registered in the OmniVault — the OmniDLOS proprietary package registry (analogous to npm but exclusive to the ecosystem). This means NovaShield Police Accountability & Community Safety Platform's algorithms, engines, and services cannot be independently installed or replicated outside the OmniDLOS ecosystem.
+
+#### OmniScript as IP Value Driver
+
+The OmniScript implementation of NovaShield Police Accountability & Community Safety Platform creates three distinct layers of IP protection:
+
+| IP Layer | Description |
+|---|---|
+| **Copyright** | All `.omni` source files are copyrighted works — the OmniScript code itself is a protected creative expression |
+| **Trade Secret** | The Engine implementations and factor models are trade secrets expressed in a proprietary language no competitor can read without ecosystem access |
+| **Patent Support** | The OmniScript code serves as technical disclosure supporting all patent applications filed for this platform |
+
+#### OmniDLOS Terminology in Business Operations
+
+NovaShield Police Accountability & Community Safety Platform uses the OmniDLOS proprietary vocabulary across all business operations:
+
+| Generic Term | OmniDLOS Term | Used In |
+|---|---|---|
+| API | **Nexus Point** | All partner integration contracts |
+| Database record | **Vault Entry** | Data architecture documentation |
+| User session | **Orbit Session** | Product specifications |
+| Platform feature | **Universe** | Marketing and investor materials |
+| AI model | **Engine** | Technical documentation |
+| Security layer | **Guardian Layer** | Compliance documentation |
+| Analytics event | **Signal** | Data pipeline architecture |
+
+© 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+---

@@ -267,3 +267,52 @@ NovaShield, owned by Jeffrey W. Williams LLC under the OmniDLOS Holdings D4 ecos
 *© 2024–2026 Jeffrey W. Williams LLC. All Rights Reserved.*
 *CONFIDENTIAL — Owner Eyes Only*
 *OmniDLOS Holdings Ecosystem — D4*
+
+---
+
+## OMNISCRIPT: THE LANGUAGE OF A NEW CATEGORY
+
+> © 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+### OmniScript as a Definitional Element of the Citizen-Powered Police Intelligence (CPPI) Category
+
+Category creation requires more than a new product — it requires a new vocabulary, a new architecture, and a new technological paradigm. **OmniScript** is the proprietary programming language that encodes the Citizen-Powered Police Intelligence (CPPI) category's defining concepts at the language level — making NovaShield Police Accountability & Community Safety Platform not just the first platform in the category, but the only platform whose category-defining capabilities are expressed in a proprietary language no competitor can access.
+
+#### OmniScript as Category Infrastructure
+
+The Citizen-Powered Police Intelligence (CPPI) category is defined by capabilities that require OmniScript's unique primitives:
+
+| Category-Defining Capability | OmniScript Enabler | Why Competitors Cannot Replicate |
+|---|---|---|
+| Emotional Intelligence Integration | `Vibe`, `Emotion` first-class types | No public language has emotion as a native type — requires the OmniScript runtime |
+| Temporal/Legacy Awareness | `Chronicle` temporal type | Standard date libraries lack dimensional legacy semantics |
+| Real-Time Dimensional Scoring | `Pulse` scoring type | No equivalent in TypeScript, Python, or Java — requires OmniScript |
+| Cross-Platform Network Effects | `Nova.Bus` Inter-Dimensional Bus | Proprietary signal bus exclusive to OmniDLOS ecosystem |
+| Probabilistic Reasoning | `Probability` literal type | No general-purpose language enforces 0–100% at compile time |
+| Guardian-Protected Operations | `@Guardian(level: N)` decorator | Language-native access control — no framework equivalent |
+
+#### The OmniScript Category Vocabulary
+
+New categories require new language. The Citizen-Powered Police Intelligence (CPPI) category speaks OmniScript:
+
+- **Engines** replace "algorithms" — `AccountabilityScoreEngine` is not a model, it is a registered, composable, self-describing OmniScript Engine
+- **Universes** replace "platforms" — `CitizenSafetyUniverse` is not just a namespace, it is a dimensional computational scope with emotional vibe and Guardian Layer protection
+- **Nexus Points** replace "APIs" — every integration point is a typed, versioned, Guardian-protected Nexus Point
+- **Vaults** replace "databases" — all data is stored in immutable, encrypted Vault repositories with temporal Chronicle tracking
+- **Signals** replace "events" — all system activity propagates as typed dimensional Signals across the `Nova.Bus`
+- **Pulses** replace "scores" — all real-time metrics are expressed as OmniScript `Pulse` values with dimensional context
+
+#### Category Ownership Statement
+
+NovaShield Police Accountability & Community Safety Platform owns the Citizen-Powered Police Intelligence (CPPI) category because:
+
+1. **The category's architecture is expressed in a proprietary language** — OmniScript — that competitors cannot access, fork, or implement
+2. **The category's core algorithms are registered in the OmniVault** — the proprietary package registry exclusive to the OmniDLOS ecosystem
+3. **The category's cross-platform network effects are built on `Nova.Bus`** — the Inter-Dimensional Bus that connects all 13 OmniDLOS platforms in a proprietary signal network
+4. **The category's vocabulary is the OmniDLOS terminology system** — every term used to describe the category (Nexus Point, Vault, Guardian Layer, Engine, Universe) is a proprietary OmniDLOS coinage with no public equivalent
+
+No competitor can enter the Citizen-Powered Police Intelligence (CPPI) category without either building OmniScript from scratch (estimated: 3–5 years, $5M–$15M in engineering cost) or licensing the OmniDLOS ecosystem.
+
+© 2024–2026 Jeffrey W Williams LLC. All Rights Reserved.
+
+---
