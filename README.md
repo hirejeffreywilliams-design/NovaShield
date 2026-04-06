@@ -112,13 +112,41 @@ shield.transparency.published
 
 ## Tech Stack
 
-- **Language:** OmniScript v1.0 (compiles to TypeScript)
-- **Frontend:** React 18, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend:** Express.js, TypeScript, OmniDLOS Runtime
-- **Database (Vault):** PostgreSQL with Drizzle ORM — `ShieldVault`
-- **Design System:** OmniDLOS Unified Dark Theme + ChromaFeel™
-- **AI Infrastructure:** Nova.AI Fabric — OpenAI GPT-4o
-- **IDB:** Inter-Dimensional Bus — real-time cross-platform signals
+- **Language:** TypeScript (with OmniScript v1.0 integration)
+- **Frontend:** React 18, Wouter, TanStack React Query, Tailwind CSS, shadcn/ui, Radix UI
+- **Backend:** Express.js, TypeScript, Session-based Auth
+- **Database:** PostgreSQL with Drizzle ORM (in-memory storage for dev)
+- **Design System:** OmniDLOS Unified Dark Theme + ChromaFeel
+- **Build:** Vite, tsx
+- **CI/CD:** GitHub Actions, CodeQL, Dependabot
+
+---
+
+## Project Structure
+
+```
+novashield/
+├── client/          # React frontend (Vite)
+│   ├── index.html
+│   └── src/
+│       ├── App.tsx, main.tsx, index.css
+│       ├── components/   # Layout + shadcn/ui components
+│       ├── pages/        # Route pages
+│       ├── hooks/        # useAuth, useMobile, useToast
+│       └── lib/          # queryClient, utils
+├── server/          # Express backend
+│   ├── index.ts     # Entry point
+│   ├── routes.ts    # API routes
+│   ├── storage.ts   # In-memory data storage
+│   ├── vite.ts      # Vite dev server integration
+│   └── db/schema.ts # DB schema re-exports
+├── shared/          # Shared between client & server
+│   ├── schema.ts    # Drizzle ORM table definitions
+│   └── types.ts     # TypeScript interfaces
+├── docs/            # IP & business documentation
+├── omniscript/      # OmniScript workflow automation
+└── .github/         # CI/CD workflows
+```
 
 ---
 
@@ -126,19 +154,16 @@ shield.transparency.published
 
 ```bash
 # Install dependencies
-npm install   # or pnpm install
+npm install
 
-# Initialize OmniScript
-omni init
-
-# Build OmniScript files
-omnibuild --target ts
-
-# Run in Forge Plane (development)
+# Run in development
 npm run dev
 
-# Validate with OmniCheck
-omnicheck ./omniscript/
+# Build for production
+npm run build
+
+# Start production server
+npm start
 ```
 
 ---
