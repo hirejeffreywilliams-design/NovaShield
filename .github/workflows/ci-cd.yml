@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - run: npm run lint --if-present
       - run: npx tsc --noEmit --if-present || true
 
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
       - run: npm test --if-present || echo "No tests configured yet"
 
   security-scan:
