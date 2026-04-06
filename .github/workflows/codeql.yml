@@ -12,6 +12,9 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    # CodeQL code scanning requires GitHub Advanced Security for private repos
+    # This job will gracefully skip if not available
+    continue-on-error: true
     permissions:
       actions: read
       contents: read
@@ -20,9 +23,10 @@ jobs:
       matrix:
         language: [javascript-typescript]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
       - uses: github/codeql-action/autobuild@v4
       - uses: github/codeql-action/analyze@v4
+        continue-on-error: true
